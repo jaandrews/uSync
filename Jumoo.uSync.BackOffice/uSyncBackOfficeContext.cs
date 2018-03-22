@@ -192,6 +192,7 @@
             }
 
             // refactored out, so you can call handler groups via the api. 
+            LogHelper.Info<uSyncApplicationEventHandler>("Starting import");
             actions.AddRange(Import(handlers.Select(x => x.Value), folder, true, force, groupName));
 
             // do the once file stuff if needed. 

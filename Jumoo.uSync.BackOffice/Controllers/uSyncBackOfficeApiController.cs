@@ -9,6 +9,7 @@ using Umbraco.Core;
 using Umbraco.Core.Logging;
 using Umbraco.Web.Editors;
 using Umbraco.Web.Mvc;
+using Umbraco.Web;
 using Umbraco.Web.WebApi;
 
 using Jumoo.uSync.BackOffice.Licence;
@@ -24,21 +25,27 @@ namespace Jumoo.uSync.BackOffice.Controllers
     {
         private static HttpClient client = new HttpClient();
         [HttpPost]
-        public async Task<IHttpActionResult> Recieve(SendRequestBackEnd req) {
+        public async Task<IHttpActionResult> Send(SendRequestBackEnd req) {
             var domain = Request.Headers.GetValues("Origin").FirstOrDefault();
             var uSyncBackOffice = uSyncBackOfficeContext.Instance;
             var data = new SendRequestFrontEnd {
-                Folder = req.Folder,
+                Folder = Umbraco.TypedContent(req.Id).Url.Substring(1),
                 IncludeChildren = req.IncludeChildren
             };
-            var result = await client.PostAsJsonAsync<SendRequestFrontEnd>($"https://{req.Domain}/api/usync/receive", data);
+            //var result = await client.PostAsJsonAsync<SendRequestFrontEnd>(req.Domain + Url.GetUmbracoApiService<uSyncFrontEndController>("Receive"), data);
+            var result = await client.PostAsJsonAsync<SendRequestFrontEnd>($"https://localhost:44305{Url.GetUmbracoApiService<uSyncFrontEndController>("Receive")}", data);
             if (result.IsSuccessStatusCode) {
                 var content = await result.Content.ReadAsAsync<IEnumerable<uSyncAction>>();
                 return Ok(content);
             }
             var reason = await result.Content.ReadAsStringAsync();
-            var error = JObject.Parse(reason);
-            return Content(result.StatusCode, error);
+            try {
+                var error = JObject.Parse(reason);
+                return Content(result.StatusCode, error);
+            }
+            catch {
+                return Content(result.StatusCode, $"{domain}: {reason}");
+            }
         }
 
         [HttpGet]

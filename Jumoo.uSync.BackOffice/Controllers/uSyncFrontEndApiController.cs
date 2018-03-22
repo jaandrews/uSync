@@ -16,6 +16,7 @@ using Jumoo.uSync.BackOffice.Helpers;
 using Jumoo.uSync.BackOffice.Models;
 using System.Net.Http;
 using Newtonsoft.Json.Linq;
+using System.Text.RegularExpressions;
 
 namespace Jumoo.uSync.BackOffice.Controllers
 {
@@ -23,14 +24,21 @@ namespace Jumoo.uSync.BackOffice.Controllers
     public class uSyncFrontEndController : UmbracoApiController
     {
         [HttpPost]
-        public IEnumerable<uSyncAction> Recieve(SendRequestFrontEnd req) {
-            var domain = Request.Headers.GetValues("Origin").FirstOrDefault();
+        public async Task<IHttpActionResult> Receive(SendRequestFrontEnd req) {
+            var protocol = new Regex("http(s)?://");
+            var allowedLocations = uSyncBackOfficeContext.Instance.Configuration.Settings.Locations.Select(x => protocol.Replace(x.Url, ""));
+            var domain = Request.Headers.Host;
+            if (!allowedLocations.Contains(domain)) {
+                Logger.Warn<Events>($"Request rejected from '{Request.Headers.Host}'");
+                return BadRequest("Invalid Request");
+            }
             var uSyncBackOffice = uSyncBackOfficeContext.Instance;
+
             if (req.IncludeChildren) {
-                return uSyncBackOffice.ImportAll(req.Folder);
+                return Ok(uSyncBackOffice.ImportAll(req.Folder));
             }
             else {
-                return uSyncBackOffice.Import("Default", req.Folder, false);
+                return Ok(uSyncBackOffice.Import("Default", req.Folder, false));
             }
         }
     }
