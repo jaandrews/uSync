@@ -1,0 +1,10 @@
+﻿<div class="usync-migrate" ng-controller="uSyncMigrateController">
+    <label>Choose Location</label>
+    <p ng-hide="settings.locations.length !== 1">{{request.domain}}</p>
+    <select ng-model="request.domain" ng-options="target.Url as target.Name for target in settings.Locations">
+        <option value="">Choose Location</option>
+    </select>
+    <label>
+        <input type="checkbox" ng-model="request.includeChildren" /> Migrate Children
+    </label>
+</div>

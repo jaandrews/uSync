@@ -293,6 +293,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BackOffice.cs" />
+    <Compile Include="Controllers\uSyncFrontEndApiController.cs" />
     <Compile Include="Controllers\uSyncBackOfficeApiController.cs" />
     <Compile Include="Controllers\uSyncBackOfficeController.cs" />
     <Compile Include="Handlers\ContentTypeHandler.cs" />
@@ -325,6 +326,9 @@
     <Compile Include="Interfaces\ISyncHandlerConfig.cs" />
     <Compile Include="Interfaces\ISyncSecondPass.cs" />
     <Compile Include="Licence\GoodwillLicence.cs" />
+    <Compile Include="Models\Location.cs" />
+    <Compile Include="Models\SendRequestBackEnd.cs" />
+    <Compile Include="Models\SendRequestFrontEnd.cs" />
     <Compile Include="uSyncAction.cs" />
     <Compile Include="uSyncApplicationEventHandler.cs" />
     <Compile Include="uSyncBackOfficeConfig.cs" />
@@ -353,6 +357,9 @@
     <Content Include="App_Plugins\uSync\uSyncDashboardController.js" />
     <Content Include="App_Plugins\uSync\uSyncDashboard.html" />
     <Content Include="App_Plugins\uSync\uSyncDashboardService.js" />
+    <Content Include="App_Plugins\uSync\uSyncMigrate.css" />
+    <Content Include="App_Plugins\uSync\uSyncMigrate.html" />
+    <Content Include="App_Plugins\uSync\uSyncMigrateController.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

@@ -1,0 +1,11 @@
+﻿.sync-migrate {
+    padding: 1em;
+}
+
+.usync-migrate label {
+    display: block;
+}
+
+.usync-migrate  label, .usyn-migrate label input {
+    vertical-align: middle;
+}

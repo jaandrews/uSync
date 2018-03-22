@@ -13,12 +13,33 @@ using Umbraco.Web.WebApi;
 
 using Jumoo.uSync.BackOffice.Licence;
 using Jumoo.uSync.BackOffice.Helpers;
+using System.Net.Http;
+using Jumoo.uSync.BackOffice.Models;
+using Newtonsoft.Json.Linq;
 
 namespace Jumoo.uSync.BackOffice.Controllers
 {
     [PluginController("uSync")]
     public class uSyncApiController : UmbracoAuthorizedJsonController
     {
+        private static HttpClient client = new HttpClient();
+        [HttpPost]
+        public async Task<IHttpActionResult> Recieve(SendRequestBackEnd req) {
+            var domain = Request.Headers.GetValues("Origin").FirstOrDefault();
+            var uSyncBackOffice = uSyncBackOfficeContext.Instance;
+            var data = new SendRequestFrontEnd {
+                Folder = req.Folder,
+                IncludeChildren = req.IncludeChildren
+            };
+            var result = await client.PostAsJsonAsync<SendRequestFrontEnd>($"https://{req.Domain}/api/usync/receive", data);
+            if (result.IsSuccessStatusCode) {
+                var content = await result.Content.ReadAsAsync<IEnumerable<uSyncAction>>();
+                return Ok(content);
+            }
+            var reason = await result.Content.ReadAsStringAsync();
+            var error = JObject.Parse(reason);
+            return Content(result.StatusCode, error);
+        }
 
         [HttpGet]
         public IEnumerable<uSyncAction> Report()
@@ -216,7 +237,6 @@ namespace Jumoo.uSync.BackOffice.Controllers
 
         public bool licenced { get; set; }
         public IEnumerable<BackOfficeTab> addOnTabs { get; set; }
-
     }
 
     public class BackOfficeTab
@@ -224,7 +244,6 @@ namespace Jumoo.uSync.BackOffice.Controllers
         public string name { get; set; }
         public string template { get; set; }
     }
-
  
     public interface IuSyncAddOn
     {

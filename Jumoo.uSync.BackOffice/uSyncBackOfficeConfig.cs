@@ -1,6 +1,7 @@
 ﻿
 namespace Jumoo.uSync.BackOffice
 {
+    using Jumoo.uSync.BackOffice.Models;
     using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
@@ -51,8 +52,7 @@ namespace Jumoo.uSync.BackOffice
             if (_settings == null)
             {
                 // default settings...
-                _settings = new uSyncBackOfficeSettings
-                {
+                _settings = new uSyncBackOfficeSettings {
                     Import = true,
                     ExportAtStartup = false,
                     ExportOnSave = true,
@@ -62,12 +62,13 @@ namespace Jumoo.uSync.BackOffice
                     Folder = "~/uSync/data/",
                     ArchiveFolder = "~/uSync/Archive/",
                     BackupFolder = "~/uSync/Backup/",
-                    DontThrowErrors = false, 
+                    DontThrowErrors = false,
 
                     Handlers = new List<HandlerGroup>()
                     {
                         new HandlerGroup()
-                    }
+                    },
+                    Locations = new List<Location>()
                 };
 
                 foreach(var handler in uSyncBackOfficeContext.Instance.Handlers)
@@ -253,5 +254,7 @@ namespace Jumoo.uSync.BackOffice
 
         [XmlElement("Handlers")]
         public List<HandlerGroup> Handlers {get;set;}
+        
+        public List<Location> Locations { get; set; }
     }
 }

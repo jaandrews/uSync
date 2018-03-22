@@ -11,6 +11,7 @@ namespace Jumoo.uSync.BackOffice
     using System.Linq;
     using Core;
     using System;
+    using Umbraco.Web.Trees;
 
     public class uSyncApplicationEventHandler : ApplicationEventHandler
     {
@@ -45,6 +46,23 @@ namespace Jumoo.uSync.BackOffice
             else
             {
                 LogHelper.Warn<uSyncApplicationEventHandler>("This version of uSync isn't compatible with this version of Umbraco.");
+            }
+
+            ContentTreeController.MenuRendering += ContentTreeController_MenuRendering;
+        }
+
+        private void ContentTreeController_MenuRendering(Umbraco.Web.Trees.TreeControllerBase sender, Umbraco.Web.Trees.MenuRenderingEventArgs e) {
+            //creates a menu action that will open /umbraco/currentSection/itemAlias.html
+            if (sender.TreeAlias == "content") {
+                var item = new Umbraco.Web.Models.Trees.MenuItem("uSyncMigrate", "Migrate Content");
+
+                //optional, if you dont want to follow conventions, but do want to use a angular view
+                item.AdditionalData.Add("actionView", "/app_plugins/usync/usyncmigrate.html");
+
+                //sets the icon to icon-wine-glass 
+                item.Icon = "wine-glass";
+
+                e.Menu.Items.Add(item);
             }
         }
 
