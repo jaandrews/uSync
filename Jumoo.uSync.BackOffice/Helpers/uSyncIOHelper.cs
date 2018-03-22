@@ -10,58 +10,64 @@ namespace Jumoo.uSync.BackOffice.Helpers
     using Umbraco.Core;
     using Umbraco.Core.Logging;
     using Core.Extensions;
+    using Umbraco.Core.IO;
+    using System.Text.RegularExpressions;
 
     public class uSyncIOHelper
     {
         public static string SavePath(string root, string type, string filePath)
         {
-            return Umbraco.Core.IO.IOHelper.MapPath(
-                Path.Combine(root, type, filePath + ".config"));
+            var relativePath = Path.Combine(root, type, filePath + ".config");
+            var regex = new Regex("^~?\\/");
+            return regex.Replace(relativePath, "");
         }
 
         public static string SavePath(string root, string type, string path, string name)
         {
-            return
-                Umbraco.Core.IO.IOHelper.MapPath(
-                    Path.Combine(root, type, path, name + ".config")
-                    );
+            var relativePath = Path.Combine(root, type, path, name + ".config");
+            var regex = new Regex("^~?\\/");
+            return regex.Replace(relativePath, "");
         }
 
         public static void SaveNode(XElement node, string path)
         {
             try
             {
-                if (File.Exists(path))
-                {
+
+                LogHelper.Info<uSyncEvents>($"Saving: {path}");
+                var fs = FileSystemProviderManager.Current.GetFileSystemProvider<uSyncFileSystem>();
+                LogHelper.Info<uSyncEvents>($"Loaded file system provider: {fs.GetRelativePath(path)}", () => path);
+                if (fs.FileExists(path)) {
+                    LogHelper.Warn<uSyncEvents>("Archiving: ", () => path);
                     ArchiveFile(path);
 
                     // remove
                     // File.Delete(path);
                 }
 
-                string folder = Path.GetDirectoryName(path);
-                if (!Directory.Exists(folder))
-                    Directory.CreateDirectory(folder);
-
+                //string folder = Path.GetDirectoryName(path);
+                //if (!Directory.Exists(folder))
+                //    Directory.CreateDirectory(folder);
                 LogHelper.Debug<uSyncIOHelper>("Saving XML to Disk: {0}", () => path);
 
                 uSyncEvents.fireSaving(new uSyncEventArgs { fileName = path });
-
-                node.Save(path);
+                LogHelper.Warn<uSyncEvents>("Test: ", () => fs != null);
+                fs.AddFile(path, GetStream(node));
+                //node.Save(path);
 
                 uSyncEvents.fireSaved(new uSyncEventArgs { fileName = path });
             }
             catch(Exception ex)
             {
-                LogHelper.Warn<uSyncEvents>("Failed to save node: ", () => ex.ToString());
+                LogHelper.Warn<uSyncEvents>($"Failed to save node: {ex.ToString()}", () => ex.ToString());
             }
         }
 
         public static void ArchiveFile(string path)
         {
             LogHelper.Debug<uSyncIOHelper>("Archive: {0}", () => path);
-            try
-            {
+            try {
+                var fs = FileSystemProviderManager.Current.GetFileSystemProvider<uSyncFileSystem>();
                 if (!uSyncBackOfficeContext.Instance.Configuration.Settings.ArchiveVersions)
                 {
                     DeleteFile(path);
@@ -80,15 +86,15 @@ namespace Jumoo.uSync.BackOffice.Helpers
                                         filePath, fileName.ToSafeFileName(),
                                         DateTime.Now.ToString("ddMMyy_HHmmss"));
 
-                if (!Directory.Exists(Path.GetDirectoryName(archiveFile)))
-                    Directory.CreateDirectory(Path.GetDirectoryName(archiveFile));
+                //if (!Directory.Exists(Path.GetDirectoryName(archiveFile)))
+                //    Directory.CreateDirectory(Path.GetDirectoryName(archiveFile));
 
-                if (File.Exists(path))
+                if (fs.FileExists(path))
                 {
-                    if (File.Exists(archiveFile))
-                        File.Delete(archiveFile);
-
-                    File.Copy(path, archiveFile);
+                    if (fs.FileExists(archiveFile)) {
+                        fs.DeleteFile(archiveFile);
+                    }
+                    fs.CopyFile(path, archiveFile);
 
                     // archive does delete. because it is always called before a save, 
                     // calling archive without a save is just like deleting (but saving)
@@ -127,13 +133,13 @@ namespace Jumoo.uSync.BackOffice.Helpers
 
             uSyncEvents.fireDeleting(new uSyncEventArgs { fileName = file });
             var blankOnDelete = uSyncBackOfficeContext.Instance.Configuration.Settings.PreserveAllFiles;
-
-            if (File.Exists(file))
+            var fs = FileSystemProviderManager.Current.GetFileSystemProvider<uSyncFileSystem>();
+            if (fs.FileExists(file))
             {
                 if (!blankOnDelete)
                 {
                     LogHelper.Debug<uSyncIOHelper>("Delete: {0}", () => file);
-                    File.Delete(file);
+                    fs.DeleteFile(file);
                 }
                 else
                 {
@@ -146,14 +152,23 @@ namespace Jumoo.uSync.BackOffice.Helpers
                 LogHelper.Debug<uSyncIOHelper>("Cannot find {0} to delete", ()=> file);
             }
 
-            var dir = Path.GetDirectoryName(file);
-            if (Directory.Exists(dir))
-            {
-                if (!Directory.EnumerateFileSystemEntries(dir).Any())
-                    Directory.Delete(dir);
-            }
+            //var dir = Path.GetDirectoryName(file);
+            //if (Directory.Exists(dir))
+            //{
+            //    if (!Directory.EnumerateFileSystemEntries(dir).Any())
+            //        Directory.Delete(dir);
+            //}
 
             uSyncEvents.fireDeleted(new uSyncEventArgs { fileName = file });
+        }
+
+        internal static Stream GetStream(XElement node) {
+            var stream = new MemoryStream();
+            var writer = new StreamWriter(stream);
+            writer.Write(node.ToString());
+            writer.Flush();
+            stream.Position = 0;
+            return stream;
         }
 
         internal static void CreateBlank(string file)
@@ -161,7 +176,8 @@ namespace Jumoo.uSync.BackOffice.Helpers
             var key = Guid.NewGuid();
             var name = "default";
 
-            if (File.Exists(file))
+            var fs = FileSystemProviderManager.Current.GetFileSystemProvider<uSyncFileSystem>();
+            if (fs.FileExists(file))
             {
                 try
                 {
@@ -181,24 +197,23 @@ namespace Jumoo.uSync.BackOffice.Helpers
             XElement a = new XElement("uSyncArchive",
                 new XAttribute("Key", key.ToString()),
                 new XAttribute("Name", name));
-
-            a.Save(file);
+            fs.AddFile(file, GetStream(a));
 
         }
 
         private static void ClenseArchiveFolder(string folder)
         {
-            if (Directory.Exists(folder))
+            var fs = FileSystemProviderManager.Current.GetFileSystemProvider<uSyncFileSystem>();
+            if (fs.DirectoryExists(folder))
             {
                 int versions = uSyncBackOfficeContext.Instance.Configuration.Settings.MaxArchiveVersionCount;
-
-                DirectoryInfo dir = new DirectoryInfo(folder);
-                FileInfo[] fileList = dir.GetFiles("*.config");
-                var files = fileList.OrderByDescending(f => f.CreationTime);
-
+                //DirectoryInfo dir = new DirectoryInfo(folder);
+                //FileInfo[] fileList = dir.GetFiles("*.config");
+                //var files = fileList.OrderByDescending(f => f.CreationTime);
+                var files = fs.GetFiles(folder).Where(file => file.Contains(".config"));
                 foreach (var file in files.Skip(versions))
                 {
-                    file.Delete();
+                    fs.DeleteFile(file);
                 }
             }
         }

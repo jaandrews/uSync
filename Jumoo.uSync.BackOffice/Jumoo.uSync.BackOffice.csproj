@@ -331,6 +331,7 @@
     <Compile Include="uSyncBackOfficeContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="uSyncEvents.cs" />
+    <Compile Include="uSyncFileSystem.cs" />
     <Compile Include="uSyncFileWatcher.cs" />
   </ItemGroup>
   <ItemGroup>

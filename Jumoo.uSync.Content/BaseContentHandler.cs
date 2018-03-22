@@ -13,6 +13,8 @@ using Umbraco.Core.Services;
 using Jumoo.uSync.BackOffice.Helpers;
 using System.Xml.Linq;
 using Jumoo.uSync.Core.Extensions;
+using Umbraco.Core.IO;
+using System.Text.RegularExpressions;
 
 namespace Jumoo.uSync.Content
 {
@@ -160,15 +162,18 @@ namespace Jumoo.uSync.Content
             string mappedFolder = folder; 
             if (folder.StartsWith("~"))
                 mappedFolder = Umbraco.Core.IO.IOHelper.MapPath(folder);
-
-            if (Directory.Exists(mappedFolder))
+            var regex = new Regex("^~?\\/");
+            mappedFolder = regex.Replace(mappedFolder, "");
+            var fs = FileSystemProviderManager.Current.GetFileSystemProvider<uSyncFileSystem>();
+            if (fs.DirectoryExists(mappedFolder))
             {
-                foreach(var file in Directory.GetFiles(mappedFolder, string.Format("{0}.config", _exportFileName)))
+                
+                foreach(var file in fs.GetFiles(mappedFolder, string.Format("{0}.config", _exportFileName)))
                 {
                     actions.Add(ReportItem(file));
                 }
 
-                foreach(var child in Directory.GetDirectories(mappedFolder))
+                foreach(var child in fs.GetDirectories(mappedFolder))
                 {
                     actions.AddRange(Report(child));
                 }
