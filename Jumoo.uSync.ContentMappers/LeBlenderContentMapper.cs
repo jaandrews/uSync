@@ -23,8 +23,7 @@ namespace Jumoo.uSync.ContentMappers
             _dataTypeService = ApplicationContext.Current.Services.DataTypeService;
         }
 
-        public string GetExportValue(int dataTypeDefinitionId, string value)
-        {
+        public string GetExportValue(int dataTypeDefinitionId, string value) {
             return MapLeBlenderValue(dataTypeDefinitionId, value, false);
         }
 
@@ -33,25 +32,20 @@ namespace Jumoo.uSync.ContentMappers
             return MapLeBlenderValue(dataTypeDefinitionId, content, true);
         }
 
-        public string MapLeBlenderValue(int dataTypeDefinitionId, string value, bool import = true)
-        {
+        public string MapLeBlenderValue(int dataTypeDefinitionId, string value, bool import = true) {
             if (!IsJson(value))
                 return value;
-
             if (!IsJsonArray(value))
                 value = $"[{value}]";
-
-            LogHelper.Debug<LeBlenderContentMapper>("Test: " + value);
-            var items = JsonConvert.DeserializeObject<IEnumerable<JObject>>(value);
+            
+            var items = JArray.Parse(value);
             if (items != null)
             {
-                foreach(var item in items)
-                {
-                    foreach(var val in item.Values())
-                    {
+                foreach(var item in items) {
+                    foreach (var val in item.Values()) {
                         LogHelper.Debug<LeBlenderContentMapper>("Value: {0}", () => val.ToString());
                         var dtdValue = val.Value<string>("dataTypeGuid");
-                        var propValue = val.Value<string>("value");
+                        var propValue = val.Value<JToken>("value").ToString();
                         Guid dtdGuid;
                         if (Guid.TryParse(dtdValue, out dtdGuid))
                         {
@@ -59,14 +53,13 @@ namespace Jumoo.uSync.ContentMappers
                             if (prop != null)
                             {
                                 var mapper = ContentMapperFactory.GetMapper(prop.PropertyEditorAlias);
-                                if (mapper != null)
-                                {
+                                if (mapper != null) {
                                     string mappedValue = "";
                                     if (import)
                                         mappedValue = mapper.GetImportValue(prop.Id, propValue);
                                     else
                                         mappedValue = mapper.GetExportValue(prop.Id, propValue);
-
+                                    LogHelper.Warn<LeBlenderContentMapper>($"Mapped Value: {mappedValue}");
                                     val["value"] = mappedValue;
 
                                 }
