@@ -22,7 +22,8 @@ namespace Jumoo.uSync.Content
         where T : IContentBase
     {
         internal IContentService _contentService;
-        internal IMediaService _mediaService; 
+        internal IMediaService _mediaService;
+        internal IFileSystem _fileSystem;
 
         internal const string mediaFolderName = "_uSyncMedia";
         internal string _exportFileName = "content";
@@ -35,6 +36,7 @@ namespace Jumoo.uSync.Content
         {
             _contentService = ApplicationContext.Current.Services.ContentService;
             _mediaService = ApplicationContext.Current.Services.MediaService;
+            _fileSystem = FileSystemProviderManager.Current.GetFileSystemProvider<uSyncFileSystem>();
             _exportFileName = fileName;
 
             _ignorePathSettingOn = false;
@@ -63,11 +65,9 @@ namespace Jumoo.uSync.Content
 
             List<uSyncAction> actions = new List<uSyncAction>();
 
-            string mappedFolder = Umbraco.Core.IO.IOHelper.MapPath(folder);
-
             actions.AddRange(ProcessActions());
 
-            actions.AddRange(ImportFolder(mappedFolder, -1, force, updates));
+            actions.AddRange(ImportFolder(folder, -1, force, updates));
 
             if (updates.Any())
             {
@@ -86,9 +86,9 @@ namespace Jumoo.uSync.Content
             int itemId = parentId;
             List<uSyncAction> actions = new List<uSyncAction>();
 
-            if (Directory.Exists(folder))
+            if (_fileSystem.DirectoryExists(folder))
             {
-                foreach (string file in Directory.GetFiles(folder, string.Format("{0}.config", _exportFileName)))
+                foreach (string file in _fileSystem.GetFiles(folder, string.Format("{0}.config", _exportFileName)))
                 {
                     var attempt = Import(file, parentId, force);
                     if (attempt.Success && attempt.Change > ChangeType.NoChange && attempt.Item != null)
@@ -103,13 +103,13 @@ namespace Jumoo.uSync.Content
                 }
 
                 // redirects...
-                foreach(string file in Directory.GetFiles(folder, "redirect.config"))
+                foreach(string file in _fileSystem.GetFiles(folder, "redirect.config"))
                 {
                     var attempt = ImportRedirect(file, force);
                     actions.Add(uSyncActionHelper<T>.SetAction(attempt, file));
                 }
 
-                foreach (var child in Directory.GetDirectories(folder))
+                foreach (var child in _fileSystem.GetDirectories(folder))
                 {
                     if (!Path.GetFileName(child).Equals("_uSyncMedia", StringComparison.OrdinalIgnoreCase))
                     {
@@ -160,20 +160,17 @@ namespace Jumoo.uSync.Content
             List<uSyncAction> actions = new List<uSyncAction>();
 
             string mappedFolder = folder; 
-            if (folder.StartsWith("~"))
-                mappedFolder = Umbraco.Core.IO.IOHelper.MapPath(folder);
             var regex = new Regex("^~?\\/");
             mappedFolder = regex.Replace(mappedFolder, "");
-            var fs = FileSystemProviderManager.Current.GetFileSystemProvider<uSyncFileSystem>();
-            if (fs.DirectoryExists(mappedFolder))
+            if (_fileSystem.DirectoryExists(mappedFolder))
             {
                 
-                foreach(var file in fs.GetFiles(mappedFolder, string.Format("{0}.config", _exportFileName)))
+                foreach(var file in _fileSystem.GetFiles(mappedFolder, string.Format("{0}.config", _exportFileName)))
                 {
                     actions.Add(ReportItem(file));
                 }
 
-                foreach(var child in fs.GetDirectories(mappedFolder))
+                foreach(var child in _fileSystem.GetDirectories(mappedFolder))
                 {
                     actions.AddRange(Report(child));
                 }

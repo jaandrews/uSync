@@ -41,6 +41,7 @@ namespace Jumoo.uSync.ContentMappers
             if (!IsJsonArray(value))
                 value = $"[{value}]";
 
+            LogHelper.Debug<LeBlenderContentMapper>("Test: " + value);
             var items = JsonConvert.DeserializeObject<IEnumerable<JObject>>(value);
             if (items != null)
             {

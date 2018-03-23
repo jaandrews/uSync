@@ -12,6 +12,7 @@ namespace Jumoo.uSync.BackOffice
     using Core;
     using System;
     using Umbraco.Web.Trees;
+    using Umbraco.Core.IO;
 
     public class uSyncApplicationEventHandler : ApplicationEventHandler
     {
@@ -80,6 +81,7 @@ namespace Jumoo.uSync.BackOffice
             var settings = uSyncBackOffice.Configuration.Settings;
 
             try {
+                var fs = FileSystemProviderManager.Current.GetFileSystemProvider<uSyncFileSystem>();
                 uSyncEvents.fireStarting(new uSyncEventArgs());
 
                 List<uSyncAction> setupActions = new List<uSyncAction>();
@@ -91,7 +93,7 @@ namespace Jumoo.uSync.BackOffice
                 }
 
                 if (settings.ExportAtStartup ||
-                    (settings.ExportOnSave && !Directory.Exists(settings.MappedFolder())))
+                    (settings.ExportOnSave && !fs.DirectoryExists(settings.MappedFolder())))
                 {
                     setupActions.AddRange(uSyncBackOffice.ExportAll());
                 }

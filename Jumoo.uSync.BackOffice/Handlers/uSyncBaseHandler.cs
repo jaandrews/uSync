@@ -15,6 +15,7 @@
     using Umbraco.Core.Models;
     using System.Xml.Linq;
     using Core.Extensions;
+    using Umbraco.Core.IO;
 
     abstract public class uSyncBaseHandler<T>
     {
@@ -48,9 +49,11 @@
             actions.AddRange(ProcessActions());
             //}
 
+            LogHelper.Info<Logging>("ProcessActions");
             actions.AddRange(ImportFolder(folder, force, updates));
 
 
+            LogHelper.Info<Logging>("Import Folder");
             if (updates.Any())
             {
                 foreach (var update in updates)
@@ -71,11 +74,11 @@
         {
             List<uSyncAction> actions = new List<uSyncAction>();
 
-            string mappedfolder = Umbraco.Core.IO.IOHelper.MapPath(folder);
+            var fs = FileSystemProviderManager.Current.GetFileSystemProvider<uSyncFileSystem>();
 
-            if (Directory.Exists(mappedfolder))
+            if (fs.DirectoryExists(folder))
             {
-                foreach (string file in Directory.GetFiles(mappedfolder, "*.config"))
+                foreach (string file in fs.GetFiles(folder, "*.config"))
                 {
                     var attempt = Import(file, force);
                     if (attempt.Success && attempt.Item != null)
@@ -86,7 +89,7 @@
                     actions.Add(uSyncActionHelper<T>.SetAction(attempt, file, RequiresPostProcessing));
                 }
 
-                foreach (var children in Directory.GetDirectories(mappedfolder))
+                foreach (var children in fs.GetDirectories(folder))
                 {
                     actions.AddRange(ImportFolder(children, force, updates));
                 }

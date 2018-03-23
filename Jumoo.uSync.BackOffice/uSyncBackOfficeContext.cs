@@ -11,10 +11,12 @@
     using System.Collections.Specialized;
     using System.Diagnostics;
     using System.Threading;
+    using Umbraco.Core.IO;
 
     public class uSyncBackOfficeContext
     {
         private static uSyncBackOfficeContext _instance;
+        private IFileSystem _fileSystem;
         private SortedList<int, ISyncHandler> handlers;
 
         public Helpers.ActionTracker Tracker; 
@@ -34,7 +36,9 @@
             }
         }
 
-        public uSyncBackOfficeContext() { }
+        public uSyncBackOfficeContext() {
+            _fileSystem = FileSystemProviderManager.Current.GetFileSystemProvider<uSyncFileSystem>();
+        }
 
         public static uSyncBackOfficeContext Instance
         {
@@ -119,6 +123,7 @@
 
             // the default way uSync.BackOffice calls an import (on import all)
             List<uSyncAction> actions = new List<uSyncAction>();
+            
             actions.AddRange(Import(Configuration.Settings.HandlerGroup, folder, force));
 
 
@@ -182,7 +187,7 @@
                 () => groupName, () => folder, () => force);
 
             List<uSyncAction> actions = new List<uSyncAction>();
-
+            
             if (IsStopped(folder, force))
             {
                 LogHelper.Info<uSyncApplicationEventHandler>("usync.stop file exists, exiting");
@@ -307,19 +312,20 @@
         // checks for a stop file. tells you if it's there...
         private bool IsStopped(string folder, bool force)
         {
-            var stopFile = Umbraco.Core.IO.IOHelper.MapPath(System.IO.Path.Combine(folder, "usync.stop"));
-            return (!force && System.IO.File.Exists(stopFile));
+            var stopFile = System.IO.Path.Combine(folder, "usync.stop");
+            return (!force && _fileSystem.FileExists(stopFile));
         }
 
         // changes any once file into a stop file, so it will stop next time.
         private void OnceCheck(string folder)
         {
-            var onceFile = Umbraco.Core.IO.IOHelper.MapPath(System.IO.Path.Combine(folder, "usync.once"));
+            var onceFile = System.IO.Path.Combine(folder, "usync.once");
             LogHelper.Debug<uSyncApplicationEventHandler>("Looking for once file: {0}", () => onceFile);
-            if (System.IO.File.Exists(onceFile))
+            if (_fileSystem.FileExists(onceFile))
             {
-                var stopFile = Umbraco.Core.IO.IOHelper.MapPath(System.IO.Path.Combine(folder, "usync.stop"));
-                System.IO.File.Move(onceFile, stopFile);
+                var stopFile = System.IO.Path.Combine(folder, "usync.stop");
+                _fileSystem.CopyFile(onceFile, stopFile);
+                _fileSystem.DeleteFile(onceFile);
                 LogHelper.Debug<uSyncApplicationEventHandler>("Renamed once to stop, for next time");
             }
 

@@ -116,7 +116,7 @@ namespace Jumoo.uSync.Chauffeur
             await Out.WriteLineAsync(string.Format("Group  : {0}", cmd.group));
             await Out.WriteLineAsync(string.Format("Folder : {0}", cmd.folder));
             await Out.WriteLineAsync(string.Format("Force  : {0}", cmd.force));
-
+            
             var export = _uSyncContext.Import(cmd.group, cmd.folder, cmd.force);
 
             await _reporter.Report(export, cmd);

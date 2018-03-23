@@ -35,10 +35,10 @@ namespace Jumoo.uSync.Content
         public override SyncAttempt<IContent> Import(string filePath, int parentId, bool force = false)
         {
             LogHelper.Debug<ContentHandler>("Importing Content : {0} {1}", ()=> filePath, ()=> parentId);
-            if (!System.IO.File.Exists(filePath))
+            if (!_fileSystem.FileExists(filePath))
                 throw new FileNotFoundException(filePath);
-
-            var node = XElement.Load(filePath);
+            var fileStream = _fileSystem.OpenFile(filePath);
+            var node = XElement.Load(fileStream);
             return uSyncCoreContext.Instance.ContentSerializer.Deserialize(node, parentId, force);
            
         }

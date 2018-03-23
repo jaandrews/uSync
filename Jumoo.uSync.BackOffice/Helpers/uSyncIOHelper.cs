@@ -33,10 +33,8 @@ namespace Jumoo.uSync.BackOffice.Helpers
         {
             try
             {
-
-                LogHelper.Info<uSyncEvents>($"Saving: {path}");
+                
                 var fs = FileSystemProviderManager.Current.GetFileSystemProvider<uSyncFileSystem>();
-                LogHelper.Info<uSyncEvents>($"Loaded file system provider: {fs.GetRelativePath(path)}", () => path);
                 if (fs.FileExists(path)) {
                     LogHelper.Warn<uSyncEvents>("Archiving: ", () => path);
                     ArchiveFile(path);
@@ -51,7 +49,6 @@ namespace Jumoo.uSync.BackOffice.Helpers
                 LogHelper.Debug<uSyncIOHelper>("Saving XML to Disk: {0}", () => path);
 
                 uSyncEvents.fireSaving(new uSyncEventArgs { fileName = path });
-                LogHelper.Warn<uSyncEvents>("Test: ", () => fs != null);
                 fs.AddFile(path, GetStream(node));
                 //node.Save(path);
 

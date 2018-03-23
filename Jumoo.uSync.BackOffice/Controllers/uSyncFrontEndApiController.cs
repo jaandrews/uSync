@@ -17,6 +17,8 @@ using Jumoo.uSync.BackOffice.Models;
 using System.Net.Http;
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
+using Umbraco.Core.IO;
+using System.Net;
 
 namespace Jumoo.uSync.BackOffice.Controllers
 {
@@ -34,11 +36,16 @@ namespace Jumoo.uSync.BackOffice.Controllers
             }
             var uSyncBackOffice = uSyncBackOfficeContext.Instance;
 
-            if (req.IncludeChildren) {
-                return Ok(uSyncBackOffice.ImportAll(req.Folder));
-            }
-            else {
-                return Ok(uSyncBackOffice.Import("Default", req.Folder, false));
+            try {
+                if (req.IncludeChildren) {
+                    return Ok(uSyncBackOffice.ImportAll(req.Folder));
+                }
+                else {
+                    return Ok(uSyncBackOffice.Import("content", req.Folder, false));
+                }
+            } catch (Exception ex) {
+                Logger.Warn<Events>(ex.ToString());
+                return Content<Exception>(HttpStatusCode.InternalServerError, ex);
             }
         }
     }
