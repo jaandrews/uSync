@@ -8,6 +8,7 @@ namespace Jumoo.uSync.BackOffice
     using System.Configuration;
     using System.IO;
     using System.Xml.Serialization;
+    using System.Text.RegularExpressions;
 
     using Umbraco.Core.IO;
     using Umbraco.Core.Logging;
@@ -229,7 +230,8 @@ namespace Jumoo.uSync.BackOffice
 
         public string MappedFolder()
         {
-            return IOHelper.MapPath(Folder);
+            var leadFilter = new Regex("^~/");
+            return leadFilter.Replace(Folder, "");
         }
 
         public bool Import { get; set; }
