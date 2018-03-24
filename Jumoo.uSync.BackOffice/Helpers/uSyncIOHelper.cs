@@ -75,11 +75,12 @@ namespace Jumoo.uSync.BackOffice.Helpers
                 string folder = Path.GetDirectoryName(path);
 
                 var root = uSyncBackOfficeContext.Instance.Configuration.Settings.MappedFolder();
-                var archiveRoot = uSyncBackOfficeContext.Instance.Configuration.Settings.ArchiveFolder;
+                var regex = new Regex("^~?\\/");
+                var archiveRoot = regex.Replace(uSyncBackOfficeContext.Instance.Configuration.Settings.ArchiveFolder, "");
                 string filePath = path.Substring(root.Length);
 
                 var archiveFile = string.Format("{0}\\{1}\\{2}_{3}.config",
-                                        Umbraco.Core.IO.IOHelper.MapPath(archiveRoot),
+                                        archiveRoot,
                                         filePath, fileName.ToSafeFileName(),
                                         DateTime.Now.ToString("ddMMyy_HHmmss"));
 
@@ -116,12 +117,12 @@ namespace Jumoo.uSync.BackOffice.Helpers
             ArchiveRelativeFile(fullPath);
         }
 
-        public static void ArchiveRelativeFile(string fullPath)
-        {
-            var uSyncFolder = uSyncBackOfficeContext.Instance.Configuration.Settings.Folder;
+        public static void ArchiveRelativeFile(string fullPath) {
+            var regex = new Regex("^~?\\/");
+            var uSyncFolder = regex.Replace(uSyncBackOfficeContext.Instance.Configuration.Settings.Folder, "");
             var fullFolder = Path.Combine(uSyncFolder, fullPath + ".config");
 
-            ArchiveFile(Umbraco.Core.IO.IOHelper.MapPath(fullFolder));
+            ArchiveFile(fullFolder);
         }
 
         internal static void DeleteFile(string file)

@@ -38,7 +38,7 @@ namespace Jumoo.uSync.BackOffice.Controllers
 
             try {
                 if (req.IncludeChildren) {
-                    return Ok(uSyncBackOffice.ImportAll(req.Folder));
+                    return Ok(uSyncBackOffice.Import("content", req.Folder, false));
                 }
                 else {
                     return Ok(uSyncBackOffice.Import("content", req.Folder, false));

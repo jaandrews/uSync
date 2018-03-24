@@ -173,7 +173,7 @@
         /// <param name="enableMissingHandlers"></param>
         /// <returns></returns>
 
-        public IEnumerable<uSyncAction> Import(string groupName, string folder, bool force)
+        public IEnumerable<uSyncAction> Import(string groupName, string folder, bool force, bool recursive = true)
         {
 
             // pause all saving etc. while we do an import
@@ -222,7 +222,7 @@
                     if (!checkConfig || HandlerEnabled(handler.Name, "import", groupName)) {
                         var sw = Stopwatch.StartNew();
 
-                        var syncFolder = System.IO.Path.Combine(folder, handler.SyncFolder);
+                        var syncFolder = System.IO.Path.Combine(handler.SyncFolder, folder);
                         LogHelper.Debug<uSyncApplicationEventHandler>("# Import Calling Handler: {0}", () => handler.Name);
                         actions.AddRange(handler.ImportAll(syncFolder, force));
                         sw.Stop();

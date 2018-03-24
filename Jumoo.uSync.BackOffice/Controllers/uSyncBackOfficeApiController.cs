@@ -28,12 +28,14 @@ namespace Jumoo.uSync.BackOffice.Controllers
         public async Task<IHttpActionResult> Send(SendRequestBackEnd req) {
             var domain = Request.Headers.GetValues("Origin").FirstOrDefault();
             var uSyncBackOffice = uSyncBackOfficeContext.Instance;
+            var node = Umbraco.TypedContent(req.Id);
+            var folder = Umbraco.TypedContent(req.Id).Url.Substring(1);
+            folder = node.AncestorOrSelf(1).UrlName + "/" + folder;
             var data = new SendRequestFrontEnd {
-                Folder = Umbraco.TypedContent(req.Id).Url.Substring(1),
+                Folder = folder,
                 IncludeChildren = req.IncludeChildren
             };
-            //var result = await client.PostAsJsonAsync<SendRequestFrontEnd>(req.Domain + Url.GetUmbracoApiService<uSyncFrontEndController>("Receive"), data);
-            var result = await client.PostAsJsonAsync<SendRequestFrontEnd>($"https://localhost:44305{Url.GetUmbracoApiService<uSyncFrontEndController>("Receive")}", data);
+            var result = await client.PostAsJsonAsync<SendRequestFrontEnd>(req.Domain + Url.GetUmbracoApiService<uSyncFrontEndController>("Receive"), data);
             if (result.IsSuccessStatusCode) {
                 var content = await result.Content.ReadAsAsync<IEnumerable<uSyncAction>>();
                 return Ok(content);
