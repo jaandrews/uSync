@@ -222,7 +222,7 @@
                     if (!checkConfig || HandlerEnabled(handler.Name, "import", groupName)) {
                         var sw = Stopwatch.StartNew();
 
-                        var syncFolder = System.IO.Path.Combine(handler.SyncFolder, folder);
+                        var syncFolder = System.IO.Path.Combine(Configuration.Settings.MappedFolder(), handler.SyncFolder, folder);
                         LogHelper.Debug<uSyncApplicationEventHandler>("# Import Calling Handler: {0}", () => handler.Name);
                         actions.AddRange(handler.ImportAll(syncFolder, force));
                         sw.Stop();
