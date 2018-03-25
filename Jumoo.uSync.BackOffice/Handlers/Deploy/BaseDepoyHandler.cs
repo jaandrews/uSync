@@ -10,15 +10,18 @@ using System.Xml.Linq;
 using Umbraco.Core.Events;
 using Umbraco.Core.Logging;
 using Umbraco.Core.Models.EntityBase;
+using Umbraco.Core.IO;
 
 namespace Jumoo.uSync.BackOffice.Handlers.Deploy
 {
     abstract public class BaseDepoyHandler<TService, TItem> where TItem : IEntity
     {
         internal ISyncSerializer<TItem> _baseSerializer;
+        internal IFileSystem _fileSystem = FileSystemProviderManager.Current.GetFileSystemProvider<uSyncFileSystem>();
         internal bool RequiresPostProcessing = false;
         internal bool TwoPassImport = false; 
         public string SyncFolder { get; set; }
+
 
         #region Importing 
         public IEnumerable<uSyncAction> ImportAll(string folder, bool force)
@@ -51,13 +54,13 @@ namespace Jumoo.uSync.BackOffice.Handlers.Deploy
         {
             List<uSyncDeployNode> items = new List<uSyncDeployNode>();
 
-            var mappedFolder = Umbraco.Core.IO.IOHelper.MapPath(folder);
-
-            if (Directory.Exists(mappedFolder))
+            //var mappedFolder = Umbraco.Core.IO.IOHelper.MapPath(folder);
+            
+            if (_fileSystem.DirectoryExists(folder))
             {
-                foreach(var item in Directory.GetFiles(mappedFolder, "*." + extension))
-                {
-                    XElement node = XElement.Load(item);
+                foreach(var item in _fileSystem.GetFiles(folder, "*." + extension)) {
+                    var fileStream = _fileSystem.OpenFile(item);
+                    XElement node = XElement.Load(fileStream);
                     if (node != null)
                     {
                         items.Add(new uSyncDeployNode()
@@ -152,9 +155,9 @@ namespace Jumoo.uSync.BackOffice.Handlers.Deploy
             if (actions.Any())
             {
                 var items = actions.Where(x => x.ItemType == typeof(TItem));
-                foreach(var item in items)
-                {
-                    XElement node = XElement.Load(item.FileName);
+                foreach(var item in items) {
+                    var fileStream = _fileSystem.OpenFile(item.FileName);
+                    XElement node = XElement.Load(fileStream);
                     if (node != null)
                     {
                         var attempt = Import(node, false);

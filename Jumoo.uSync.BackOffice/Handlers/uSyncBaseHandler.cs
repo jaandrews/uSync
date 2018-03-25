@@ -19,12 +19,14 @@
 
     abstract public class uSyncBaseHandler<T>
     {
-        bool _useShortName; 
+        bool _useShortName;
+        public IFileSystem _fileSystem;
 
         public uSyncBaseHandler()
         {
             // short Id Setting, means we save with id.config not {{name}}.config
             _useShortName = uSyncBackOfficeContext.Instance.Configuration.Settings.UseShortIdNames;
+            _fileSystem = FileSystemProviderManager.Current.GetFileSystemProvider<uSyncFileSystem>();
         }
 
         // do things that get imported by this handler then require some form of 

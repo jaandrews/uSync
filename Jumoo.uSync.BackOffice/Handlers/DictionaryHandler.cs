@@ -24,10 +24,11 @@ namespace Jumoo.uSync.BackOffice.Handlers
 
         public override SyncAttempt<IDictionaryItem> Import(string filePath, bool force = false)
         {
-            if (!System.IO.File.Exists(filePath))
+            if (!_fileSystem.FileExists(filePath))
                 throw new FileNotFoundException(filePath);
 
-            var node = XElement.Load(filePath);
+            var fileStream = _fileSystem.OpenFile(filePath);
+            var node = XElement.Load(fileStream);
 
             return uSyncCoreContext.Instance.DictionarySerializer.DeSerialize(node, force);
         }
@@ -176,9 +177,9 @@ namespace Jumoo.uSync.BackOffice.Handlers
             return item;
         }
 
-        public override uSyncAction ReportItem(string file)
-        {
-            var node = XElement.Load(file);
+        public override uSyncAction ReportItem(string file) {
+            var fileStream = _fileSystem.OpenFile(file);
+            var node = XElement.Load(fileStream);
             var update = uSyncCoreContext.Instance.DictionarySerializer.IsUpdate(node);
             var action = uSyncActionHelper<IDictionaryItem>.ReportAction(update, node.NameFromNode(), "Dictionary Items often get their order mixed up");
             if (action.Change > ChangeType.NoChange)

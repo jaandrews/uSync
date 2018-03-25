@@ -37,20 +37,22 @@ namespace Jumoo.uSync.BackOffice.Handlers
 
         public override SyncAttempt<IMediaType> Import(string filePath, bool force = false)
         {
-            if (!System.IO.File.Exists(filePath))
+            if (!_fileSystem.FileExists(filePath))
                 throw new FileNotFoundException(filePath);
 
-            var node = XElement.Load(filePath);
+            var fileStream = _fileSystem.OpenFile(filePath);
+            var node = XElement.Load(fileStream);
 
             return uSyncCoreContext.Instance.MediaTypeSerializer.DeSerialize(node, force);
         }
 
         public override void ImportSecondPass(string file, IMediaType item)
         {
-            if (!System.IO.File.Exists(file))
+            if (!_fileSystem.FileExists(file))
                 throw new FileNotFoundException(file);
 
-            var node = XElement.Load(file);
+            var fileStream = _fileSystem.OpenFile(file);
+            var node = XElement.Load(fileStream);
 
             uSyncCoreContext.Instance.MediaTypeSerializer.DesearlizeSecondPass(item, node);
         }
@@ -204,9 +206,9 @@ namespace Jumoo.uSync.BackOffice.Handlers
 
         }
 
-        public override uSyncAction ReportItem(string file)
-        {
-            var node = XElement.Load(file);
+        public override uSyncAction ReportItem(string file) {
+            var fileStream = _fileSystem.OpenFile(file);
+            var node = XElement.Load(fileStream);
             var update = uSyncCoreContext.Instance.MediaTypeSerializer.IsUpdate(node);
             var action = uSyncActionHelper<IMediaType>.ReportAction(update, node.NameFromNode());
             if (action.Change > ChangeType.NoChange)

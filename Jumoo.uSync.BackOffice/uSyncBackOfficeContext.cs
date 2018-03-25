@@ -244,7 +244,7 @@
                     {
                         var postHandler = (ISyncPostImportHandler)handler;
 
-                        var syncFolder = System.IO.Path.Combine(folder, handler.SyncFolder);
+                        var syncFolder = System.IO.Path.Combine(Configuration.Settings.MappedFolder(), handler.SyncFolder, folder);
                         LogHelper.Debug<uSyncApplicationEventHandler>("# Post Import Processing: {0}", () => handler.Name);
                         var postActions = postHandler.ProcessPostImport(syncFolder, postImports);
                         if (postActions != null)

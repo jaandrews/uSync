@@ -73,20 +73,22 @@ namespace Jumoo.uSync.BackOffice.Handlers
 
         public override SyncAttempt<IMemberType> Import(string filePath, bool force = false)
         {
-            if (!System.IO.File.Exists(filePath))
+            if (!_fileSystem.FileExists(filePath))
                 throw new System.IO.FileNotFoundException();
 
-            var node = XElement.Load(filePath);
+            var fileStream = _fileSystem.OpenFile(filePath);
+            var node = XElement.Load(fileStream);
             var attempt = uSyncCoreContext.Instance.MemberTypeSerializer.DeSerialize(node, force);
             return attempt;
         }
 
         public override void ImportSecondPass(string file, IMemberType item)
         {
-            if (!System.IO.File.Exists(file))
+            if (!_fileSystem.FileExists(file))
                 throw new System.IO.FileNotFoundException();
 
-            var node = XElement.Load(file);
+            var fileStream = _fileSystem.OpenFile(file);
+            var node = XElement.Load(fileStream);
 
             uSyncCoreContext.Instance.MemberTypeSerializer.DesearlizeSecondPass(item, node);
         }
@@ -129,9 +131,9 @@ namespace Jumoo.uSync.BackOffice.Handlers
             }
         }
 
-        public override uSyncAction ReportItem(string file)
-        {
-            var node = XElement.Load(file);
+        public override uSyncAction ReportItem(string file) {
+            var fileStream = _fileSystem.OpenFile(file);
+            var node = XElement.Load(fileStream);
             var update = uSyncCoreContext.Instance.MemberTypeSerializer.IsUpdate(node);
             var action = uSyncActionHelper<IMemberType>.ReportAction(update, node.NameFromNode());
             if (action.Change > ChangeType.NoChange)

@@ -22,10 +22,11 @@
 
         public override SyncAttempt<ITemplate> Import(string filePath, bool force = false)
         {
-            if (!System.IO.File.Exists(filePath))
+            if (!_fileSystem.FileExists(filePath))
                 throw new ArgumentNullException(filePath);
 
-            var node = XElement.Load(filePath);
+            var fileStream = _fileSystem.OpenFile(filePath);
+            var node = XElement.Load(fileStream);
             return uSyncCoreContext.Instance.TemplateSerializer.DeSerialize(node, force);
         }
 
@@ -149,9 +150,9 @@
             }
         }
 
-        public override uSyncAction ReportItem(string file)
-        {
-            var node = XElement.Load(file);
+        public override uSyncAction ReportItem(string file) {
+            var fileStream = _fileSystem.OpenFile(file);
+            var node = XElement.Load(fileStream);
             var update = uSyncCoreContext.Instance.TemplateSerializer.IsUpdate(node);
             var action = uSyncActionHelper<ITemplate>.ReportAction(update, node.NameFromNode());
             if (action.Change > ChangeType.NoChange)

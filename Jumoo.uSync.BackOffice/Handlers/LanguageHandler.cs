@@ -22,10 +22,11 @@
 
         public override SyncAttempt<ILanguage> Import(string filePath, bool force = false)
         {
-            if (!System.IO.File.Exists(filePath))
+            if (!_fileSystem.FileExists(filePath))
                 throw new FileNotFoundException(filePath);
 
-            var node = XElement.Load(filePath);
+            var fileStream = _fileSystem.OpenFile(filePath);
+            var node = XElement.Load(fileStream);
             var attempt = uSyncCoreContext.Instance.LanguageSerializer.DeSerialize(node, force);
 
             if (attempt.Success && attempt.Item != null)
@@ -125,9 +126,9 @@
             }
         }
 
-        public override uSyncAction ReportItem(string file)
-        {
-            var node = XElement.Load(file);
+        public override uSyncAction ReportItem(string file) {
+            var fileStream = _fileSystem.OpenFile(file);
+            var node = XElement.Load(fileStream);
             var update = uSyncCoreContext.Instance.LanguageSerializer.IsUpdate(node);
             var action = uSyncActionHelper<ILanguage>.ReportAction(update, node.NameFromNode());
             if (action.Change > ChangeType.NoChange)

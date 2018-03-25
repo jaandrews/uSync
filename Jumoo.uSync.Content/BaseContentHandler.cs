@@ -85,7 +85,6 @@ namespace Jumoo.uSync.Content
             LogHelper.Debug<ContentHandler>("Import Folder: {0} {1}", () => folder, () => parentId);
             int itemId = parentId;
             List<uSyncAction> actions = new List<uSyncAction>();
-
             if (_fileSystem.DirectoryExists(folder))
             {
                 foreach (string file in _fileSystem.GetFiles(folder, string.Format("{0}.config", _exportFileName)))
@@ -101,16 +100,15 @@ namespace Jumoo.uSync.Content
 
                     actions.Add(uSyncActionHelper<T>.SetAction(attempt, file));
                 }
-
                 // redirects...
-                foreach(string file in _fileSystem.GetFiles(folder, "redirect.config"))
-                {
-                    var attempt = ImportRedirect(file, force);
-                    actions.Add(uSyncActionHelper<T>.SetAction(attempt, file));
+                if (_fileSystem.FileExists(folder + "redirect.config")) {
+                    foreach (string file in _fileSystem.GetFiles(folder, "redirect.config")) {
+                        var attempt = ImportRedirect(file, force);
+                        actions.Add(uSyncActionHelper<T>.SetAction(attempt, file));
+                    }
                 }
 
-                foreach (var child in _fileSystem.GetDirectories(folder))
-                {
+                foreach (var child in _fileSystem.GetDirectories(folder)) {
                     if (!Path.GetFileName(child).Equals("_uSyncMedia", StringComparison.OrdinalIgnoreCase))
                     {
                         actions.AddRange(ImportFolder(child, itemId, force, updates));

@@ -40,10 +40,11 @@ namespace Jumoo.uSync.BackOffice.Handlers
         {
             LogHelper.Debug<IDataTypeDefinition>(">> Import: {0}", () => filePath);
 
-            if (!System.IO.File.Exists(filePath))
+            if (!_fileSystem.FileExists(filePath))
                 throw new FileNotFoundException(filePath);
 
-            var node = XElement.Load(filePath);
+            var fileStream = _fileSystem.OpenFile(filePath);
+            var node = XElement.Load(fileStream);
 
             return uSyncCoreContext.Instance.DataTypeSerializer.Deserialize(node, force, false);
         }

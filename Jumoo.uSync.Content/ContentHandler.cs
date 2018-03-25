@@ -59,7 +59,8 @@ namespace Jumoo.uSync.Content
         public override void ImportSecondPass(string file, IContent item)
         {
             // uSyncCoreContext.Instance.ContentSerializer.D
-            XElement node = XElement.Load(file);
+            var fileStream = _fileSystem.OpenFile(file);
+            XElement node = XElement.Load(fileStream);
             uSyncCoreContext.Instance.ContentSerializer.DesearlizeSecondPass(item, node);
         }
 

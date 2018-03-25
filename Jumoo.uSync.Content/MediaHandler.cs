@@ -33,10 +33,10 @@ namespace Jumoo.uSync.Content
         public override SyncAttempt<IMedia> Import(string file, int parentId, bool force = false)
         {
             LogHelper.Debug<MediaHandler>("Importing Media: {0} {1}", () => file, ()=> parentId);
-            if (!System.IO.File.Exists(file))
+            if (!_fileSystem.FileExists(file))
                 throw new FileNotFoundException(file);
-
-            var node = XElement.Load(file);
+            var fileStream = _fileSystem.OpenFile(file);
+            var node = XElement.Load(fileStream);
             var attempt = uSyncCoreContext.Instance.MediaSerializer.Deserialize(node, parentId, force);
             
             return attempt;
@@ -55,9 +55,9 @@ namespace Jumoo.uSync.Content
             return uSyncAction.SetAction(true, keyString, typeof(IContent), ChangeType.Delete, "Deleted");
         }
 
-        public override void ImportSecondPass(string file, IMedia item)
-        {
-            XElement node = XElement.Load(file);
+        public override void ImportSecondPass(string file, IMedia item) {
+            var fileStream = _fileSystem.OpenFile(file);
+            var node = XElement.Load(fileStream);
             uSyncCoreContext.Instance.MediaSerializer.DesearlizeSecondPass(item, node);
 
             string mediaFolder = Path.Combine(Path.GetDirectoryName(file), mediaFolderName);
@@ -177,9 +177,9 @@ namespace Jumoo.uSync.Content
             return path;
         }
 
-        public override uSyncAction ReportItem(string file)
-        {
-            var node = XElement.Load(file);
+        public override uSyncAction ReportItem(string file) {
+            var fileStream = _fileSystem.OpenFile(file);
+            var node = XElement.Load(fileStream);
             var update = uSyncCoreContext.Instance.MediaSerializer.IsUpdate(node);
             return uSyncActionHelper<IMedia>.ReportAction(update, node.NameFromNode());
         }
