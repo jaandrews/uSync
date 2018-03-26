@@ -37,12 +37,7 @@ namespace Jumoo.uSync.BackOffice.Controllers
             var uSyncBackOffice = uSyncBackOfficeContext.Instance;
 
             try {
-                if (req.IncludeChildren) {
-                    return Ok(uSyncBackOffice.Import("content", req.Folder, false));
-                }
-                else {
-                    return Ok(uSyncBackOffice.Import("content", req.Folder, false));
-                }
+                return Ok(uSyncBackOffice.Import("content", req.Folder, false, req.IncludeChildren).Distinct());
             } catch (Exception ex) {
                 Logger.Warn<Events>(ex.ToString());
                 return Content<Exception>(HttpStatusCode.InternalServerError, ex);

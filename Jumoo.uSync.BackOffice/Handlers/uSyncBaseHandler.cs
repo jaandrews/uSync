@@ -36,7 +36,7 @@
 
         abstract public SyncAttempt<T> Import(string filePath, bool force = false);
 
-        public IEnumerable<uSyncAction> ImportAll(string folder, bool force)
+        public IEnumerable<uSyncAction> ImportAll(string folder, bool force, bool includeChildren)
         {
             LogHelper.Info<Logging>("Running Import: {0}", () => Path.GetFileName(folder));
             List<uSyncAction> actions = new List<uSyncAction>();

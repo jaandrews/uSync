@@ -24,7 +24,7 @@ namespace Jumoo.uSync.BackOffice.Handlers.Deploy
 
 
         #region Importing 
-        public IEnumerable<uSyncAction> ImportAll(string folder, bool force)
+        public IEnumerable<uSyncAction> ImportAll(string folder, bool force, bool includeChildren = true)
         {
             List<uSyncAction> actions = new List<uSyncAction>();
 

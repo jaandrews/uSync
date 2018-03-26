@@ -173,7 +173,7 @@
         /// <param name="enableMissingHandlers"></param>
         /// <returns></returns>
 
-        public IEnumerable<uSyncAction> Import(string groupName, string folder, bool force, bool recursive = true)
+        public IEnumerable<uSyncAction> Import(string groupName, string folder, bool force, bool includeChildren = true)
         {
 
             // pause all saving etc. while we do an import
@@ -198,7 +198,7 @@
 
             // refactored out, so you can call handler groups via the api. 
             LogHelper.Info<uSyncApplicationEventHandler>("Starting import");
-            actions.AddRange(Import(handlers.Select(x => x.Value), folder, true, force, groupName));
+            actions.AddRange(Import(handlers.Select(x => x.Value), folder, true, force, groupName, includeChildren));
 
             // do the once file stuff if needed. 
             OnceCheck(folder);
@@ -210,7 +210,7 @@
             return actions;
         }
 
-        public IEnumerable<uSyncAction> Import(IEnumerable<ISyncHandler> syncHandlers, string folder, bool checkConfig, bool force, string groupName = "")
+        public IEnumerable<uSyncAction> Import(IEnumerable<ISyncHandler> syncHandlers, string folder, bool checkConfig, bool force, string groupName = "", bool includeChildren = true)
         {
             List<uSyncAction> actions = new List<uSyncAction>();
 
@@ -224,7 +224,7 @@
 
                         var syncFolder = System.IO.Path.Combine(Configuration.Settings.MappedFolder(), handler.SyncFolder, folder);
                         LogHelper.Debug<uSyncApplicationEventHandler>("# Import Calling Handler: {0}", () => handler.Name);
-                        actions.AddRange(handler.ImportAll(syncFolder, force));
+                        actions.AddRange(handler.ImportAll(syncFolder, force, includeChildren));
                         sw.Stop();
                         LogHelper.Debug<uSyncApplicationEventHandler>("# Handler {0} Complete ({1}ms)", () => handler.Name, () => sw.ElapsedMilliseconds);
                     }

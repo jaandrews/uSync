@@ -12,7 +12,7 @@ namespace Jumoo.uSync.BackOffice
     {
         void RegisterEvents();
 
-        IEnumerable<uSyncAction> ImportAll(string folder, bool force);
+        IEnumerable<uSyncAction> ImportAll(string folder, bool force, bool includeChildren = true);
         IEnumerable<uSyncAction> ExportAll(string folder);
 
         IEnumerable<uSyncAction> Report(string folder);

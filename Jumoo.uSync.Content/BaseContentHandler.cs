@@ -57,7 +57,7 @@ namespace Jumoo.uSync.Content
         }
         virtual public void ImportSecondPass(string file, T item) {}
 
-        public IEnumerable<uSyncAction> ImportAll(string folder, bool force)
+        public IEnumerable<uSyncAction> ImportAll(string folder, bool force, bool includeChildren = true)
         {
             LogHelper.Debug<Logging>("Running Content Import: {0}", () => Path.GetFileName(folder));
 
@@ -67,7 +67,7 @@ namespace Jumoo.uSync.Content
 
             actions.AddRange(ProcessActions());
 
-            actions.AddRange(ImportFolder(folder, -1, force, updates));
+            actions.AddRange(ImportFolder(folder, -1, force, updates, includeChildren));
 
             if (updates.Any())
             {
@@ -80,15 +80,17 @@ namespace Jumoo.uSync.Content
             return actions;
         }
 
-        private IEnumerable<uSyncAction> ImportFolder(string folder, int parentId, bool force, Dictionary<string, T> updates)
+        private IEnumerable<uSyncAction> ImportFolder(string folder, int parentId, bool force, Dictionary<string, T> updates, bool includeChildren = true)
         {
             LogHelper.Debug<ContentHandler>("Import Folder: {0} {1}", () => folder, () => parentId);
             int itemId = parentId;
             List<uSyncAction> actions = new List<uSyncAction>();
             if (_fileSystem.DirectoryExists(folder))
             {
-                foreach (string file in _fileSystem.GetFiles(folder, string.Format("{0}.config", _exportFileName)))
-                {
+                var files = _fileSystem.GetFiles(folder, string.Format("{0}.config", _exportFileName));
+                var targetFiles = includeChildren ? files : new List<string> { files.FirstOrDefault() };
+
+                foreach (string file in targetFiles) {
                     var attempt = Import(file, parentId, force);
                     if (attempt.Success && attempt.Change > ChangeType.NoChange && attempt.Item != null)
                     {
@@ -105,13 +107,6 @@ namespace Jumoo.uSync.Content
                     foreach (string file in _fileSystem.GetFiles(folder, "redirect.config")) {
                         var attempt = ImportRedirect(file, force);
                         actions.Add(uSyncActionHelper<T>.SetAction(attempt, file));
-                    }
-                }
-
-                foreach (var child in _fileSystem.GetDirectories(folder)) {
-                    if (!Path.GetFileName(child).Equals("_uSyncMedia", StringComparison.OrdinalIgnoreCase))
-                    {
-                        actions.AddRange(ImportFolder(child, itemId, force, updates));
                     }
                 }
             }
