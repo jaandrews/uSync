@@ -30,7 +30,6 @@ namespace Jumoo.uSync.ContentMappers.Extractors {
                 var results = new List<string>();
                 foreach (var item in items) {
                     foreach (var val in item.Values()) {
-                        LogHelper.Debug<LeBlenderContentExtractor>("Value: {0}", () => val.ToString());
                         var dtdValue = val.Value<string>("dataTypeGuid");
                         var propValue = val.Value<JToken>("value").ToString();
                         Guid dtdGuid;

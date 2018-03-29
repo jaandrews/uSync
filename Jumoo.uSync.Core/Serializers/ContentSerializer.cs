@@ -215,7 +215,7 @@ namespace Jumoo.uSync.Core.Serializers
                 if (extractorData != null) {
                     var extractor = ContentExtractorFactory.GetExtractor(extractorData);
                     if (extractor != null && prop.Value != null) {
-                        var result = extractor.GetValues(prop.PropertyType.DataTypeDefinitionId, "Umbraco.MediaPicker", prop.Value.ToString());
+                        var result = extractor.GetValues(prop.PropertyType.DataTypeDefinitionId, "media", prop.Value.ToString());
                         if (result != null) {
                             mediaIds.AddRange(result);
                         }
@@ -224,7 +224,7 @@ namespace Jumoo.uSync.Core.Serializers
             }
 
             if (mediaIds.Count() > 0) {
-                node.Add(new XAttribute("media", String.Join(",", mediaIds)));
+                node.Add(new XAttribute("media", String.Join(",", mediaIds.Distinct())));
             }
 
             LogHelper.Debug<ContentSerializer>("Returning Node");

@@ -6,12 +6,9 @@ using Umbraco.Core.Logging;
 namespace Jumoo.uSync.Core.Extractors {
     public class ContentExtractorFactory
     {
-        public static IContentExtractor GetCustomExtractor(string typeDefinition)
-        {
-            LogHelper.Debug<ContentExtractorFactory>("Getting Custom Extractor: {0} ", () => typeDefinition);
+        public static IContentExtractor GetCustomExtractor(string typeDefinition) {
             Type extractorType = Type.GetType(typeDefinition);
-            if (extractorType == null)
-            {
+            if (extractorType == null) {
                 return null;
             }
 

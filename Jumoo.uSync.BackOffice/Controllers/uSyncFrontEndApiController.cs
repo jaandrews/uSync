@@ -37,8 +37,10 @@ namespace Jumoo.uSync.BackOffice.Controllers
             var uSyncBackOffice = uSyncBackOfficeContext.Instance;
 
             try {
-                foreach (var image in req.MediaFolders) {
-                    uSyncBackOffice.Import("media", image, false, false);
+                if (req.MediaFolders != null) {
+                    foreach (var image in req.MediaFolders) {
+                        uSyncBackOffice.Import("media", image, false, false);
+                    }
                 }
                 return Ok(uSyncBackOffice.Import("content", req.Folder, false, req.IncludeChildren).Distinct());
             } catch (Exception ex) {

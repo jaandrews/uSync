@@ -27,10 +27,9 @@ namespace Jumoo.uSync.ContentMappers.Extractors {
             foreach (ArchetypePreValueFieldset fieldSet in config.Fieldsets) {
                 foreach (ArchetypePreValueProperty property in fieldSet.Properties) {
                     IDataTypeDefinition dataType = _dataTypeService.GetDataTypeDefinitionById(property.DataTypeGuid);
-
-                    LogHelper.Debug<LeBlenderContentExtractor>("Archetype Test: {0}", () => dataType.PropertyEditorAlias);
+                    
                     var extractor = ContentExtractorFactory.GetExtractor(dataType.PropertyEditorAlias);
-
+                    
                     if (extractor != null) {
                         var properties = typedContent.Fieldsets.AsQueryable()
                                     .SelectMany(fs => fs.Properties)

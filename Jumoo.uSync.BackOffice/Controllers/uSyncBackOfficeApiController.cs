@@ -45,9 +45,18 @@ namespace Jumoo.uSync.BackOffice.Controllers
             var filePath = System.IO.Path.Combine(uSyncBackOfficeContext.Instance.Configuration.Settings.MappedFolder(), "Content", folder, "content.config");
             var fileStream = _fileSystem.OpenFile(filePath);
             XElement item = XElement.Load(fileStream);
-            var media = item.Attribute("media").Value;
-            if (!string.IsNullOrEmpty(media)) {
-                data.MediaFolders = Umbraco.TypedMedia(media.Split(',')).Select(x => x.Url.Replace(x.UrlName, ""));
+            var media = item.Attribute("media");
+            if (media != null && !string.IsNullOrEmpty(media.Value)) {
+                LogHelper.Debug<uSyncApiController>("Media: {0}", () => media.Value);
+                data.MediaFolders = Umbraco.TypedMedia(media.Value.Split(',')).Where(x => x != null).Select(x => {
+                    var path = x.Name;
+                    var target = x.Parent;
+                    while (target != null) {
+                        path = target.UrlName + "/" + path;
+                        target = target.Parent;
+                    }
+                    return path;
+                });
             }
             var result = await client.PostAsJsonAsync<SendRequestFrontEnd>(req.Domain + Url.GetUmbracoApiService<uSyncFrontEndController>("Receive"), data);
             if (result.IsSuccessStatusCode) {
