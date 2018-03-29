@@ -61,7 +61,7 @@ namespace Jumoo.uSync.BackOffice
                 item.AdditionalData.Add("actionView", "/app_plugins/usync/usyncmigrate.html");
 
                 //sets the icon to icon-wine-glass 
-                item.Icon = "wine-glass";
+                item.Icon = "umb-deploy";
 
                 e.Menu.Items.Add(item);
             }

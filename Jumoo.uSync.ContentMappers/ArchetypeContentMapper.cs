@@ -10,6 +10,8 @@ using Jumoo.uSync.Core;
 using Jumoo.uSync.Core.Mappers;
 
 using Archetype.Models;
+using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 
 namespace Jumoo.uSync.ContentMappers
 {
@@ -44,15 +46,21 @@ namespace Jumoo.uSync.ContentMappers
 
                     if (mapper != null)
                     {
-                        typedContent.Fieldsets.AsQueryable()
+                        var properties = typedContent.Fieldsets.AsQueryable()
                                     .SelectMany(fs => fs.Properties)
-                                    .Where(p => p.Alias == property.Alias)
-                                    .ForEach(pm => pm.Value = mapper.GetExportValue(dataType.Id, pm.Value.ToString()));
+                                    .Where(p => p.Alias == property.Alias);
+                        foreach (var prop in properties) {
+
+                            var val = mapper.GetExportValue(dataType.Id, prop.Value.ToString());
+                            prop.Value = IsJson(val) ? JToken.Parse(val) : val;
+                        }
+                        //typedContent.Fieldsets.AsQueryable()
+                        //            .SelectMany(fs => fs.Properties)
+                        //            .Where(p => p.Alias == property.Alias)
+                        //            .ForEach(pm => pm.Value = mapper.GetExportValue(dataType.Id, pm.Value.ToString()));
                     }
                 }
             }
-            
-
             return typedContent.SerializeForPersistence();
         }
 
@@ -78,15 +86,24 @@ namespace Jumoo.uSync.ContentMappers
 
                     if (mapper != null)
                     {
-                        typedContent.Fieldsets.AsQueryable()
+                        var properties = typedContent.Fieldsets.AsQueryable()
                                     .SelectMany(fs => fs.Properties)
-                                    .Where(p => p.Alias == property.Alias)
-                                    .ForEach(pm => pm.Value = mapper.GetImportValue(dataType.Id, pm.Value.ToString()));
+                                    .Where(p => p.Alias == property.Alias);
+                        foreach (var prop in properties) {
+                            var val = mapper.GetImportValue(dataType.Id, prop.Value.ToString());
+                            prop.Value = IsJson(val) ? JToken.Parse(val) : val;
+                        }
                     }
                 }
             }
 
             return typedContent.SerializeForPersistence();
+        }
+
+        private bool IsJson(string val) {
+            val = val.Trim();
+            return (val.StartsWith("{") && val.EndsWith("}"))
+                || (val.StartsWith("[") && val.EndsWith("]"));
         }
     }
 }

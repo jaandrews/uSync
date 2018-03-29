@@ -12,6 +12,7 @@ namespace Jumoo.uSync.Core
     using System;
     using System.Diagnostics;
     using Mappers;
+    using Jumoo.uSync.Core.Extractors;
 
     public class uSyncCoreContext
     {
@@ -27,6 +28,7 @@ namespace Jumoo.uSync.Core
         public Dictionary<string, ISyncSerializerBase> Serailizers;
 
         public Dictionary<string, IContentMapper> Mappers;
+        public Dictionary<string, IContentExtractor> Extractors;
 
         public ISyncContainerSerializerTwoPass<IContentType> ContentTypeSerializer { get; private set; }
         public ISyncContainerSerializerTwoPass<IMediaType> MediaTypeSerializer { get; private set; }
@@ -119,6 +121,7 @@ namespace Jumoo.uSync.Core
             MediaFileMover = new uSyncMediaFileMover();
 
             LoadMappers();
+            LoadExtractors();
 
             sw.Stop();
             LogHelper.Info<uSyncCoreContext>("Loading Context ({0}ms)", () => sw.ElapsedMilliseconds);
@@ -190,6 +193,24 @@ namespace Jumoo.uSync.Core
                         else
                         {
                             LogHelper.Warn<uSyncCoreContext>("Multiple Mappers Found for : {0}", () => alias);
+                        }
+                    }
+                }
+            }
+        }
+
+        public void LoadExtractors() {
+            Extractors = new Dictionary<string, IContentExtractor>();
+            var types = TypeFinder.FindClassesOfType<IContentExtractor>();
+            if (types != null && types.Any()) {
+                foreach (var type in types) {
+                    var instance = Activator.CreateInstance(type) as IContentExtractor;
+                    foreach (var alias in instance.PropertyEditorAliases) {
+                        if (!Extractors.ContainsKey(alias.ToLower())) {
+                            Extractors.Add(alias.ToLower(), instance);
+                        }
+                        else {
+                            LogHelper.Warn<uSyncCoreContext>("Multiple Extractors Found for : {0}", () => alias);
                         }
                     }
                 }

@@ -35,6 +35,10 @@ namespace Jumoo.uSync.BackOffice.Controllers
                 Folder = folder,
                 IncludeChildren = req.IncludeChildren
             };
+            if (node.HasValue("@media")) {
+                var media = Umbraco.TypedMedia(node.GetPropertyValue<string>("@media").Split(','));
+                data.Images = media.Select(x => x.Url.Replace(x.UrlName, ""));
+            }
             var result = await client.PostAsJsonAsync<SendRequestFrontEnd>(req.Domain + Url.GetUmbracoApiService<uSyncFrontEndController>("Receive"), data);
             if (result.IsSuccessStatusCode) {
                 var content = await result.Content.ReadAsAsync<IEnumerable<uSyncAction>>();

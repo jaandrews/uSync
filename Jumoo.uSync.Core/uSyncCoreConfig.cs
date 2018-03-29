@@ -100,6 +100,7 @@ namespace Jumoo.uSync.Core
 
         public List<uSyncValueMapperSettings> Mappings { get; set; }
         public List<uSyncContentMapping> ContentMappings { get; set; }
+        public List<uSyncContentExtractor> ContentExtractors { get; set; }
     }
 
     public class uSyncValueMapperSettings
@@ -168,6 +169,26 @@ namespace Jumoo.uSync.Core
 
         [XmlAttribute(AttributeName = "CustomMappingType")]
         public string CustomMappingType { get; set; }
+
+        [XmlAttribute(AttributeName = "Settings")]
+        public string Settings { get; set; }
+
+        [XmlAttribute(AttributeName = "Regex")]
+        public string RegEx { get; set; }
+
+        [XmlAttribute(AttributeName = "View")]
+        public string View { get; set; }
+    }
+
+    public class uSyncContentExtractor {
+        [XmlAttribute(AttributeName = "Alias")]
+        public string EditorAlias { get; set; }
+
+        [XmlAttribute(AttributeName = "Extractor")]
+        public ContentMappingType ExtractorType { get; set; }
+
+        [XmlAttribute(AttributeName = "CustomExtractorType")]
+        public string CustomExtractorType { get; set; }
 
         [XmlAttribute(AttributeName = "Settings")]
         public string Settings { get; set; }

@@ -30,9 +30,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Archetype, Version=1.12.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Archetype.Binaries.1.12.4\lib\net40\Archetype.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Archetype, Version=1.18.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Archetype.Binaries.1.18.0\lib\net40\Archetype.dll</HintPath>
     </Reference>
     <Reference Include="AutoMapper, Version=3.3.1.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
       <HintPath>..\packages\AutoMapper.3.3.1\lib\net40\AutoMapper.dll</HintPath>
@@ -279,6 +278,9 @@
     <Compile Include="ArchetypeContentMapper.cs" />
     <Compile Include="ContentMappers.cs" />
     <Compile Include="DocTypeGridMapper.cs" />
+    <Compile Include="Extractors\ExtractorHelper.cs" />
+    <Compile Include="Extractors\ArchetypeContentExtractor.cs" />
+    <Compile Include="Extractors\LeBlenderContentExtractor.cs" />
     <Compile Include="InnerContentMapper.cs" />
     <Compile Include="LeBlenderContentMapper.cs" />
     <Compile Include="NestedContentMapper.cs" />

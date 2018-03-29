@@ -1,0 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Jumoo.uSync.Core.Extractors {
+    public class MediaPickerExtractor : IContentExtractor {
+        public string[] PropertyEditorAliases => new[] { "Umbraco.MediaPicker" };
+        public IEnumerable<string> GetValues(int dateTypeDefinitionId, string editorAlias, string value) {
+            if (editorAlias == "Umbraco.MediaPicker") {
+                return value.Split(',');
+            }
+            return null;
+        }
+    }
+}

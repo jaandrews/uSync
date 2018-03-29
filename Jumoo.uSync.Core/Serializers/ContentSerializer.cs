@@ -12,6 +12,8 @@ using Umbraco.Core;
 using Jumoo.uSync.Core.Helpers;
 using Umbraco.Core.Logging;
 using System.Globalization;
+using Jumoo.uSync.Core.Extractors;
+using Newtonsoft.Json.Linq;
 
 namespace Jumoo.uSync.Core.Serializers
 {
@@ -183,6 +185,7 @@ namespace Jumoo.uSync.Core.Serializers
 
             var node = attempt.Item;
 
+
             // content specifics..
             node.Add(new XAttribute("parentGUID", item.Level > 1 ? item.Parent().Key : Guid.Empty));
             node.Add(new XAttribute("nodeTypeAlias", item.ContentType.Alias));
@@ -196,7 +199,6 @@ namespace Jumoo.uSync.Core.Serializers
                 node.Add(new XAttribute("isBlueprint", IsBlueprint(item)));
             }
 
-
             if (item.ExpireDate != null)
             {
                 node.Add(new XAttribute("unpublishAt", item.ExpireDate.Value.ToString("yyyy-MM-ddTHH:mm:ss.fffffff'Z'")));
@@ -205,6 +207,25 @@ namespace Jumoo.uSync.Core.Serializers
             if (item.ReleaseDate != null)
             {
                 node.Add(new XAttribute("publishAt", item.ReleaseDate.Value.ToString("yyyy-MM-ddTHH:mm:ss.fffffff'Z'")));
+            }
+
+            var mediaIds = new List<string>();
+            foreach (var prop in item.Properties) {
+                var extractorData = uSyncCoreContext.Instance.Configuration.Settings.ContentExtractors.SingleOrDefault(x => x.EditorAlias == prop.PropertyType.PropertyEditorAlias);
+                if (extractorData != null) {
+                    var extractor = ContentExtractorFactory.GetExtractor(extractorData);
+                    if (extractor != null) {
+                        LogHelper.Debug<ContentSerializer>("Serialize Test: {0} {1}", () => prop.PropertyType.DataTypeDefinitionId, () => JToken.FromObject(prop.Value).ToString());
+                        var result = extractor.GetValues(prop.PropertyType.DataTypeDefinitionId, "Umbraco.MediaPicker", JToken.FromObject(prop.Value).ToString());
+                        if (result != null) {
+                            mediaIds.AddRange(result);
+                        }
+                    }
+                }
+            }
+
+            if (mediaIds.Count() > 0) {
+                node.Add(new XAttribute("media", String.Join(",", mediaIds)));
             }
 
             LogHelper.Debug<ContentSerializer>("Returning Node");

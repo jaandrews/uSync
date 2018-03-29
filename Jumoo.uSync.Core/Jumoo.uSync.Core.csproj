@@ -296,6 +296,8 @@
     <Compile Include="Extensions\XElementTrackerExtension.cs" />
     <Compile Include="Extensions\XElementuSyncTypeExtension.cs" />
     <Compile Include="Extensions\XElementValueExtensions.cs" />
+    <Compile Include="Extractors\GridExtractor.cs" />
+    <Compile Include="Extractors\MediaPickerExtractor.cs" />
     <Compile Include="Helpers\DeployIOHelper.cs" />
     <Compile Include="Helpers\uSyncChangeTracker.cs" />
     <Compile Include="Helpers\uSyncContainerHelper.cs" />
@@ -303,6 +305,7 @@
     <Compile Include="Helpers\uSyncTreeWalker.cs" />
     <Compile Include="Helpers\uSyncIdMapper.cs" />
     <Compile Include="Helpers\uSyncValueMapper.cs" />
+    <Compile Include="Extractors\IContentExtractor.cs" />
     <Compile Include="Interfaces\ISyncChangeDetail.cs" />
     <Compile Include="Interfaces\ISyncContainerSerializer.cs" />
     <Compile Include="Interfaces\ISyncSerializerWithFiles.cs" />
@@ -312,6 +315,7 @@
     <Compile Include="Mappers\ContentDataTypeKeyMapper.cs" />
     <Compile Include="Mappers\ContentDataTypeMapper.cs" />
     <Compile Include="Mappers\ContentIdMapping.cs" />
+    <Compile Include="Extractors\ContentExtractorFactory.cs" />
     <Compile Include="Mappers\ContentMapperFactory.cs" />
     <Compile Include="Mappers\GridMacroMapper.cs" />
     <Compile Include="Mappers\GridMapper.cs" />

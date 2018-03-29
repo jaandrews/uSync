@@ -59,9 +59,7 @@ namespace Jumoo.uSync.ContentMappers
                                         mappedValue = mapper.GetImportValue(prop.Id, propValue);
                                     else
                                         mappedValue = mapper.GetExportValue(prop.Id, propValue);
-                                    LogHelper.Warn<LeBlenderContentMapper>($"Mapped Value: {mappedValue}");
-                                    val["value"] = mappedValue;
-
+                                    val["value"] = IsJson(mappedValue) ? JToken.Parse(mappedValue) : mappedValue;
                                 }
 
                             }
