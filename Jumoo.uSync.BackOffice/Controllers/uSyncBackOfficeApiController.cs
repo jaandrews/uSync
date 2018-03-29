@@ -17,12 +17,19 @@ using Jumoo.uSync.BackOffice.Helpers;
 using System.Net.Http;
 using Jumoo.uSync.BackOffice.Models;
 using Newtonsoft.Json.Linq;
+using Umbraco.Core.IO;
+using System.Xml.Linq;
 
 namespace Jumoo.uSync.BackOffice.Controllers
 {
     [PluginController("uSync")]
     public class uSyncApiController : UmbracoAuthorizedJsonController
     {
+        private IFileSystem _fileSystem;
+        public uSyncApiController() {
+            _fileSystem = FileSystemProviderManager.Current.GetFileSystemProvider<uSyncFileSystem>();
+        }
+
         private static HttpClient client = new HttpClient();
         [HttpPost]
         public async Task<IHttpActionResult> Send(SendRequestBackEnd req) {
@@ -35,9 +42,12 @@ namespace Jumoo.uSync.BackOffice.Controllers
                 Folder = folder,
                 IncludeChildren = req.IncludeChildren
             };
-            if (node.HasValue("@media")) {
-                var media = Umbraco.TypedMedia(node.GetPropertyValue<string>("@media").Split(','));
-                data.Images = media.Select(x => x.Url.Replace(x.UrlName, ""));
+            var filePath = System.IO.Path.Combine(uSyncBackOfficeContext.Instance.Configuration.Settings.MappedFolder(), "Content", folder, "content.config");
+            var fileStream = _fileSystem.OpenFile(filePath);
+            XElement item = XElement.Load(fileStream);
+            var media = item.Attribute("media").Value;
+            if (!string.IsNullOrEmpty(media)) {
+                data.MediaFolders = Umbraco.TypedMedia(media.Split(',')).Select(x => x.Url.Replace(x.UrlName, ""));
             }
             var result = await client.PostAsJsonAsync<SendRequestFrontEnd>(req.Domain + Url.GetUmbracoApiService<uSyncFrontEndController>("Receive"), data);
             if (result.IsSuccessStatusCode) {
