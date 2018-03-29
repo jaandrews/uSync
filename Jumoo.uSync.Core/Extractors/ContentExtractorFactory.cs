@@ -60,8 +60,8 @@ namespace Jumoo.uSync.Core.Extractors {
             }
         }
 
-        public static IContentExtractor GetByViewName(string view)
-        {
+        public static IContentExtractor GetByViewName(string view) {
+            LogHelper.Debug<ContentExtractorFactory>("Returning Extractor by view: {0}", () => view);
             var extractor = uSyncCoreContext.Instance.Configuration.Settings.ContentExtractors
                     .SingleOrDefault(x => !string.IsNullOrEmpty(x.View) && view.IndexOf(x.View, StringComparison.InvariantCultureIgnoreCase) > -1);
 

@@ -214,9 +214,8 @@ namespace Jumoo.uSync.Core.Serializers
                 var extractorData = uSyncCoreContext.Instance.Configuration.Settings.ContentExtractors.SingleOrDefault(x => x.EditorAlias == prop.PropertyType.PropertyEditorAlias);
                 if (extractorData != null) {
                     var extractor = ContentExtractorFactory.GetExtractor(extractorData);
-                    if (extractor != null) {
-                        LogHelper.Debug<ContentSerializer>("Serialize Test: {0} {1}", () => prop.PropertyType.DataTypeDefinitionId, () => JToken.FromObject(prop.Value).ToString());
-                        var result = extractor.GetValues(prop.PropertyType.DataTypeDefinitionId, "Umbraco.MediaPicker", JToken.FromObject(prop.Value).ToString());
+                    if (extractor != null && prop.Value != null) {
+                        var result = extractor.GetValues(prop.PropertyType.DataTypeDefinitionId, "Umbraco.MediaPicker", prop.Value.ToString());
                         if (result != null) {
                             mediaIds.AddRange(result);
                         }
