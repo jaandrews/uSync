@@ -18,10 +18,13 @@ namespace Jumoo.uSync.ContentMappers.Extractors {
         }
         
         public IEnumerable<string> GetValues(int dataTypeDefinitionId, string editorAlias, string value) {
+            if (string.IsNullOrEmpty(value)) {
+                return null;
+            }
             string archetypeConfig = _dataTypeService.GetPreValuesCollectionByDataTypeId(dataTypeDefinitionId).PreValuesAsDictionary["archetypeConfig"].Value;
 
             var config = JsonConvert.DeserializeObject<ArchetypePreValue>(archetypeConfig);
-
+            
             var typedContent = JsonConvert.DeserializeObject<ArchetypeModel>(value);
             var results = new List<string>();
             foreach (ArchetypePreValueFieldset fieldSet in config.Fieldsets) {
@@ -34,7 +37,7 @@ namespace Jumoo.uSync.ContentMappers.Extractors {
                         var properties = typedContent.Fieldsets.AsQueryable()
                                     .SelectMany(fs => fs.Properties)
                                     .Where(p => p.Alias == property.Alias);
-                        foreach (var prop in properties) {
+                        foreach (var prop in properties.Where(x => x.Value != null)) {
                             var result = extractor.GetValues(dataType.Id, editorAlias, prop.Value.ToString());
                             if (result != null) {
                                 results.AddRange(result);
