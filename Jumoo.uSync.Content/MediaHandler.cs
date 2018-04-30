@@ -14,6 +14,7 @@ using Umbraco.Core.Models;
 using Umbraco.Core.Services;
 using Umbraco.Core.Logging;
 using System.Linq;
+using Examine;
 
 namespace Jumoo.uSync.Content
 {
@@ -38,7 +39,15 @@ namespace Jumoo.uSync.Content
             var fileStream = _fileSystem.OpenFile(file);
             var node = XElement.Load(fileStream);
             var attempt = uSyncCoreContext.Instance.MediaSerializer.Deserialize(node, parentId, force);
-            
+            if (attempt.Success) {
+                var indexHandlerGroup = uSyncBackOfficeContext.Instance.Configuration.Settings.IndexUpdaters.FirstOrDefault(x => x.Type == "media");
+                if (indexHandlerGroup != null) {
+                    foreach (var indexHandler in indexHandlerGroup.Updaters.Where(x => x.Enabled)) {
+                        LogHelper.Debug<ContentHandler>("Adding media to index : {0}", () => indexHandler.Index);
+                        ExamineManager.Instance.ReIndexNode(node, indexHandler.Index);
+                    }
+                }
+            }
             return attempt;
         }
 

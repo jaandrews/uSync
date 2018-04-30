@@ -14,7 +14,7 @@ using Umbraco.Core.Models;
 using Umbraco.Core.Services;
 using Umbraco.Core.Logging;
 using System.Linq;
-
+using Examine;
 
 namespace Jumoo.uSync.Content
 {
@@ -39,7 +39,17 @@ namespace Jumoo.uSync.Content
                 throw new FileNotFoundException(filePath);
             var fileStream = _fileSystem.OpenFile(filePath);
             var node = XElement.Load(fileStream);
-            return uSyncCoreContext.Instance.ContentSerializer.Deserialize(node, parentId, force);
+            var result = uSyncCoreContext.Instance.ContentSerializer.Deserialize(node, parentId, force);
+            if (result.Success) {
+                var indexHandlerGroup = uSyncBackOfficeContext.Instance.Configuration.Settings.IndexUpdaters.FirstOrDefault(x => x.Type == "content");
+                if (indexHandlerGroup != null) {
+                    foreach (var indexHandler in indexHandlerGroup.Updaters.Where(x => x.Enabled)) {
+                        LogHelper.Debug<ContentHandler>("Adding node to index : {0}", () => indexHandler.Index);
+                        ExamineManager.Instance.ReIndexNode(node, indexHandler.Index);
+                    }
+                }
+            }
+            return result;
            
         }
 

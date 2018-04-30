@@ -85,11 +85,9 @@ namespace Jumoo.uSync.Content
             LogHelper.Debug<ContentHandler>("Import Folder: {0} {1}", () => folder, () => parentId);
             int itemId = parentId;
             List<uSyncAction> actions = new List<uSyncAction>();
-            if (_fileSystem.DirectoryExists(folder))
-            {
+            if (_fileSystem.DirectoryExists(folder)) {
                 var files = _fileSystem.GetFiles(folder, string.Format("{0}.config", _exportFileName));
                 var targetFiles = includeChildren ? files : new List<string> { files.FirstOrDefault() };
-
                 foreach (string file in targetFiles) {
                     var attempt = Import(file, parentId, force);
                     if (attempt.Success && attempt.Change > ChangeType.NoChange && attempt.Item != null)

@@ -19,6 +19,7 @@ using Jumoo.uSync.BackOffice.Models;
 using Newtonsoft.Json.Linq;
 using Umbraco.Core.IO;
 using System.Xml.Linq;
+using System.Net;
 
 namespace Jumoo.uSync.BackOffice.Controllers
 {
@@ -43,33 +44,50 @@ namespace Jumoo.uSync.BackOffice.Controllers
                 IncludeChildren = req.IncludeChildren
             };
             var filePath = System.IO.Path.Combine(uSyncBackOfficeContext.Instance.Configuration.Settings.MappedFolder(), "Content", folder, "content.config");
-            var fileStream = _fileSystem.OpenFile(filePath);
-            XElement item = XElement.Load(fileStream);
-            var media = item.Attribute("media");
-            if (media != null && !string.IsNullOrEmpty(media.Value)) {
-                LogHelper.Debug<uSyncApiController>("Media: {0}", () => media.Value);
-                data.MediaFolders = Umbraco.TypedMedia(media.Value.Split(',')).Where(x => x != null).Select(x => {
-                    var path = x.Name;
-                    var target = x.Parent;
-                    while (target != null) {
-                        path = target.UrlName + "/" + path;
-                        target = target.Parent;
-                    }
-                    return path;
-                });
+            if (_fileSystem.FileExists(filePath)) {
+                var fileStream = _fileSystem.OpenFile(filePath);
+                XElement item = XElement.Load(fileStream);
+                var media = item.Attribute("media");
+                if (media != null && !string.IsNullOrEmpty(media.Value)) {
+                    data.MediaFolders = Umbraco.TypedMedia(media.Value.Split(',')).Where(x => x != null).Select(x => {
+                        var path = x.UrlName;
+                        var namePieces = x.Name.Split('.');
+                        if (namePieces.Count() > 1) {
+                            var piece = namePieces[namePieces.Count() - 1].ToLower();
+                            var lastIndex = path.LastIndexOf(piece);
+                            path = path.Substring(0, lastIndex) + "." + piece;
+                        }
+                        var target = x.Parent;
+                        while (target != null) {
+                            var targetPath = target.UrlName;
+                            namePieces = target.Name.Split('.');
+                            if (namePieces.Count() > 1) {
+                                var piece = namePieces[namePieces.Count() - 1].ToLower();
+                                var lastIndex = path.LastIndexOf(piece);
+                                targetPath = targetPath.Substring(0, lastIndex) + "." + piece;
+                            }
+                            path = targetPath + "/" + path;
+                            target = target.Parent;
+                        }
+                        return path;
+                    });
+                }
+                var result = await client.PostAsJsonAsync<SendRequestFrontEnd>(req.Domain + Url.GetUmbracoApiService<uSyncFrontEndController>("Receive"), data);
+                if (result.IsSuccessStatusCode) {
+                    var content = await result.Content.ReadAsAsync<IEnumerable<uSyncAction>>();
+                    return Ok(content);
+                }
+                var reason = await result.Content.ReadAsStringAsync();
+                try {
+                    var error = JObject.Parse(reason);
+                    return Content(result.StatusCode, error);
+                }
+                catch {
+                    return Content(result.StatusCode, $"{domain}: {reason}");
+                }
             }
-            var result = await client.PostAsJsonAsync<SendRequestFrontEnd>(req.Domain + Url.GetUmbracoApiService<uSyncFrontEndController>("Receive"), data);
-            if (result.IsSuccessStatusCode) {
-                var content = await result.Content.ReadAsAsync<IEnumerable<uSyncAction>>();
-                return Ok(content);
-            }
-            var reason = await result.Content.ReadAsStringAsync();
-            try {
-                var error = JObject.Parse(reason);
-                return Content(result.StatusCode, error);
-            }
-            catch {
-                return Content(result.StatusCode, $"{domain}: {reason}");
+            else {
+                return Content(HttpStatusCode.NotFound, "Usync hasn't synced this node yet. Please republish the node and try again.");
             }
         }
 

@@ -39,6 +39,7 @@ namespace Jumoo.uSync.BackOffice.Controllers
             try {
                 if (req.MediaFolders != null) {
                     foreach (var image in req.MediaFolders) {
+                        Logger.Warn<Events>("Media Folder : {0}", () => image);
                         uSyncBackOffice.Import("media", image, false, false);
                     }
                 }

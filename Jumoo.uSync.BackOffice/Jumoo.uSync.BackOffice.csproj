@@ -326,6 +326,8 @@
     <Compile Include="Interfaces\ISyncHandlerConfig.cs" />
     <Compile Include="Interfaces\ISyncSecondPass.cs" />
     <Compile Include="Licence\GoodwillLicence.cs" />
+    <Compile Include="Models\IndexUpdaterConfig.cs" />
+    <Compile Include="Models\IndexUpdaterGroup.cs" />
     <Compile Include="Models\Location.cs" />
     <Compile Include="Models\SendRequestBackEnd.cs" />
     <Compile Include="Models\SendRequestFrontEnd.cs" />

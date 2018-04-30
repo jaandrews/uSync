@@ -258,5 +258,8 @@ namespace Jumoo.uSync.BackOffice
         public List<HandlerGroup> Handlers {get;set;}
         
         public List<Location> Locations { get; set; }
+
+        [XmlElement("IndexUpdaters")]
+        public List<IndexUpdaterGroup> IndexUpdaters { get; set; }
     }
 }
