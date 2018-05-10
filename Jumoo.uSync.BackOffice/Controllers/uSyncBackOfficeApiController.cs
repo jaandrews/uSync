@@ -11,7 +11,7 @@ using Umbraco.Web.Editors;
 using Umbraco.Web.Mvc;
 using Umbraco.Web;
 using Umbraco.Web.WebApi;
-
+using Umbraco.Web.Routing;
 using Jumoo.uSync.BackOffice.Licence;
 using Jumoo.uSync.BackOffice.Helpers;
 using System.Net.Http;
@@ -37,8 +37,27 @@ namespace Jumoo.uSync.BackOffice.Controllers
             var domain = Request.Headers.GetValues("Origin").FirstOrDefault();
             var uSyncBackOffice = uSyncBackOfficeContext.Instance;
             var node = Umbraco.TypedContent(req.Id);
-            var folder = Umbraco.TypedContent(req.Id).Url.Substring(1);
-            folder = node.AncestorOrSelf(1).UrlName + "/" + folder;
+            string folder;
+            if (node == null) {
+                var content = Services.ContentService.GetById(req.Id);
+                folder = content.Name.ToSafeFileName();
+                var parent = Umbraco.TypedContent(content.ParentId);
+                while (parent == null && content.ParentId > -1) {
+                    content = Services.ContentService.GetById(content.ParentId);
+                    folder = content.Name.ToSafeFileName() + "/" + folder;
+                    parent = Umbraco.TypedContent(content.ParentId);
+                }
+                if (parent != null) {
+                    folder = parent.Url + folder;
+                    folder = parent.AncestorOrSelf(1).UrlName + folder;
+                }
+                LogHelper.Debug<uSyncApiController>("Getting non published url.");
+            }
+            else {
+                folder = node.Url.Substring(1);
+                folder = node.AncestorOrSelf(1).UrlName + "/" + folder;
+            }
+            LogHelper.Debug<uSyncApiController>("Migrating content from '{0}'", () => folder);
             var data = new SendRequestFrontEnd {
                 Folder = folder,
                 IncludeChildren = req.IncludeChildren
