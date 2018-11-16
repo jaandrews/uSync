@@ -45,7 +45,7 @@ namespace Jumoo.uSync.BackOffice.Controllers
                 }
                 return Ok(uSyncBackOffice.Import("content", req.Folder, false, req.IncludeChildren).Distinct());
             } catch (Exception ex) {
-                Logger.Warn<Events>(ex.ToString());
+                Logger.Error<Events>("Something went wrong migrating content from '" + req.Folder + "'", ex);
                 return Content<Exception>(HttpStatusCode.InternalServerError, ex);
             }
         }

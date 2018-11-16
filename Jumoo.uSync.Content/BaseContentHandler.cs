@@ -256,8 +256,8 @@ namespace Jumoo.uSync.Content
             {
                 if (handlerSettings.UseShortName)
                     return uSyncIOHelper.GetShortGuidPath(item.Key);
-
-                return item.Name.ToSafeFileName();
+                var name = item.Name.Replace("/", "");
+                return name.ToSafeFileName();
             }
 
             // we should never really get here, but if for

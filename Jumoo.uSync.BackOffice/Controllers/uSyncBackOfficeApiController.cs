@@ -63,6 +63,7 @@ namespace Jumoo.uSync.BackOffice.Controllers
                 IncludeChildren = req.IncludeChildren
             };
             var filePath = System.IO.Path.Combine(uSyncBackOfficeContext.Instance.Configuration.Settings.MappedFolder(), "Content", folder, "content.config");
+            LogHelper.Debug<uSyncApiController>("Loading content from '" + filePath + "'");
             if (_fileSystem.FileExists(filePath)) {
                 var fileStream = _fileSystem.OpenFile(filePath);
                 XElement item = XElement.Load(fileStream);
@@ -99,13 +100,16 @@ namespace Jumoo.uSync.BackOffice.Controllers
                 var reason = await result.Content.ReadAsStringAsync();
                 try {
                     var error = JObject.Parse(reason);
+                    LogHelper.Error<uSyncApiController>("An error occured migrating '" + data.Folder + "'", new Exception(reason));
                     return Content(result.StatusCode, error);
                 }
-                catch {
+                catch (Exception ex) {
+                    LogHelper.Error<uSyncApiController>("An error occured migrating '" + data.Folder + "'", ex);
                     return Content(result.StatusCode, $"{domain}: {reason}");
                 }
             }
             else {
+                LogHelper.Warn<uSyncApiController>("'" + data.Folder + "' was not found in usync content folder.");
                 return Content(HttpStatusCode.NotFound, "Usync hasn't synced this node yet. Please republish the node and try again.");
             }
         }

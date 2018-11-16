@@ -296,6 +296,7 @@
     <Compile Include="Extensions\XElementTrackerExtension.cs" />
     <Compile Include="Extensions\XElementuSyncTypeExtension.cs" />
     <Compile Include="Extensions\XElementValueExtensions.cs" />
+    <Compile Include="Extractors\GridMediaExtractor.cs" />
     <Compile Include="Extractors\GridExtractor.cs" />
     <Compile Include="Extractors\MediaPickerExtractor.cs" />
     <Compile Include="Helpers\DeployIOHelper.cs" />

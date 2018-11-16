@@ -36,6 +36,7 @@ namespace Jumoo.uSync.ContentMappers.Extractors {
                         if (Guid.TryParse(dtdValue, out dtdGuid)) {
                             var prop = _dataTypeService.GetDataTypeDefinitionById(dtdGuid);
                             if (prop != null) {
+                                LogHelper.Debug<LeBlenderContentExtractor>("Extracting: {0} {1}", () => prop.PropertyEditorAlias, () => propValue);
                                 var extractor = ContentExtractorFactory.GetExtractor(prop.PropertyEditorAlias);
                                 if (extractor != null) {
                                     var result = extractor.GetValues(prop.Id, editorAlias, propValue);
@@ -50,6 +51,7 @@ namespace Jumoo.uSync.ContentMappers.Extractors {
 
                     }
                 }
+                LogHelper.Debug<LeBlenderContentExtractor>("Results: {0}", () => results.Count());
                 return results;
             }
             return null;
